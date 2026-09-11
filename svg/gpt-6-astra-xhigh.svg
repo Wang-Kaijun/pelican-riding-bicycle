@@ -1,0 +1,153 @@
+<svg class="pr-scene" viewBox="0 0 920 550" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pr-title pr-description" width="920" height="550">
+    <title id="pr-title">海风中的鹈鹕骑行</title>
+    <desc id="pr-description">一只戴绿色头盔、系珊瑚色围巾的白鹈鹕，骑着珊瑚色自行车沿海岸前进。双脚交替踩踏，车轮转动，云朵与道路向后移动。下方滑块可以调节速度，调到零即可暂停。</desc>
+    <defs>
+      <clipPath id="pr-scene-clip"><rect width="920" height="550" rx="22"/></clipPath>
+      <g id="pr-cloud-shape" fill="var(--pr-cloud)">
+        <path d="M0 27C0 16 10 9 23 13C26-4 52-6 61 10C77 5 90 13 89 26C104 23 114 30 115 39H0Z"/>
+      </g>
+      <g id="pr-wheel-spokes" stroke="var(--pr-spoke)" stroke-width="1.7">
+        <path d="M-78 0H78M0-78V78M-55.15-55.15L55.15 55.15M-55.15 55.15L55.15-55.15M-72.06-29.85L72.06 29.85M-72.06 29.85L72.06-29.85M-29.85-72.06L29.85 72.06M-29.85 72.06L29.85-72.06"/>
+        <path d="M43-65L49-58" stroke="var(--pr-bike-light)" stroke-width="6" stroke-linecap="round"/>
+      </g>
+      <g id="pr-grass" fill="none" stroke="var(--pr-leaf)" stroke-width="3" stroke-linecap="round">
+        <path d="M0 0Q-2-14-12-21M0 0Q2-24 12-30M1 0Q9-13 18-13"/>
+      </g>
+      <g id="pr-road-unit">
+        <path d="M20 520H98" stroke="var(--pr-stripe)" stroke-width="5" stroke-linecap="round"/>
+        <path d="M126 488H136M156 539H159" stroke="var(--pr-shadow)" stroke-opacity=".15" stroke-width="3" stroke-linecap="round"/>
+      </g>
+    </defs>
+    <g clip-path="url(#pr-scene-clip)">
+      <path fill="var(--pr-sky)" d="M0 0H920V550H0Z"/>
+      <circle cx="746" cy="100" r="54" fill="var(--pr-sun)" opacity=".22"/>
+      <circle cx="746" cy="100" r="38" fill="var(--pr-sun)"/>
+      <g id="pr-clouds" opacity=".95" transform="translate(-11.857443025884255 0)">
+        <use href="#pr-cloud-shape" transform="translate(-120 65) scale(1.25)"/>
+        <use href="#pr-cloud-shape" transform="translate(151 74) scale(.95)"/>
+        <use href="#pr-cloud-shape" transform="translate(410 39) scale(.68)"/>
+        <use href="#pr-cloud-shape" transform="translate(870 65) scale(1.25)"/>
+        <use href="#pr-cloud-shape" transform="translate(1141 74) scale(.95)"/>
+        <use href="#pr-cloud-shape" transform="translate(1400 39) scale(.68)"/>
+        <use href="#pr-cloud-shape" transform="translate(1860 65) scale(1.25)"/>
+      </g>
+      <g fill="none" stroke="var(--pr-island)" stroke-width="2.5" stroke-linecap="round" opacity=".8">
+        <path d="M112 187q8-9 16 0q8-9 16 0M786 235q6-7 12 0q6-7 12 0"/>
+      </g>
+      <path d="M0 344Q102 324 209 343T429 342T674 340T920 333V439H0Z" fill="var(--pr-sea)"/>
+      <path d="M0 341Q60 311 111 329Q144 303 174 319Q217 317 252 345Z" fill="var(--pr-island)"/>
+      <g transform="translate(131 263)" class="pr-line" stroke-width="2">
+        <path d="M-10 63L-7 13H7L12 63Z" fill="var(--pr-cloud)"/>
+        <path d="M-7 30H8L9 42H-8Z" fill="var(--pr-bike)" stroke="none"/>
+        <path d="M-10 14V2H10V14ZM-13 2L0-8L13 2Z" fill="var(--pr-helmet)"/>
+        <path d="M-3 5V11M3 5V11M0 49V58"/>
+      </g>
+      <g id="pr-waves" fill="none" stroke="var(--pr-wave)" stroke-width="3" stroke-linecap="round" transform="translate(-40.654090374460296 0)">
+        <path d="M-120 365H-77M-35 401H39M69 380H110M194 360H234M278 414H364M420 380H471M518 399H563M627 360H684M745 416H787M849 380H900M920 365H963M1005 401H1079M1109 380H1150M1234 360H1274M1318 414H1404M1460 380H1511M1558 399H1603M1667 360H1724M1785 416H1827M1889 380H1940"/>
+      </g>
+      <path d="M0 437Q180 428 354 439T708 437T920 440V550H0Z" fill="var(--pr-sand)"/>
+      <path d="M0 474H920V550H0Z" fill="var(--pr-road)"/>
+      <path d="M0 474H920" stroke="var(--pr-stripe)" stroke-width="3"/>
+      <g id="pr-plants" transform="translate(-254.08806484037686 0)">
+        <use href="#pr-grass" x="104" y="468"/>
+        <use href="#pr-grass" x="742" y="468"/>
+        <use href="#pr-grass" x="1024" y="468"/>
+        <use href="#pr-grass" x="1662" y="468"/>
+        <g fill="var(--pr-leaf)" opacity=".4">
+          <ellipse cx="240" cy="457" rx="9" ry="3"/>
+          <ellipse cx="850" cy="464" rx="6" ry="2"/>
+          <ellipse cx="1160" cy="457" rx="9" ry="3"/>
+          <ellipse cx="1770" cy="464" rx="6" ry="2"/>
+        </g>
+      </g>
+      <g id="pr-road" transform="translate(-158.7840864538358 0)">
+        <use href="#pr-road-unit" x="-180"/><use href="#pr-road-unit" x="0"/>
+        <use href="#pr-road-unit" x="180"/><use href="#pr-road-unit" x="360"/>
+        <use href="#pr-road-unit" x="540"/><use href="#pr-road-unit" x="720"/>
+        <use href="#pr-road-unit" x="900"/><use href="#pr-road-unit" x="1080"/>
+      </g>
+      <ellipse cx="460" cy="503" rx="235" ry="12" fill="var(--pr-shadow)" opacity=".09"/>
+      <g id="pr-bicycle">
+        <g fill="none">
+          <circle cx="320" cy="415" r="86" stroke="var(--pr-outline)" stroke-width="11"/>
+          <circle cx="600" cy="415" r="86" stroke="var(--pr-outline)" stroke-width="11"/>
+          <circle cx="320" cy="415" r="79" stroke="var(--pr-metal)" stroke-width="3"/>
+          <circle cx="600" cy="415" r="79" stroke="var(--pr-metal)" stroke-width="3"/>
+        </g>
+        <g transform="translate(320 415)"><g id="pr-rear-spokes" transform="rotate(225.70811999999998)"><use href="#pr-wheel-spokes"/></g></g>
+        <g transform="translate(600 415)"><g id="pr-front-spokes" transform="rotate(225.70811999999998)"><use href="#pr-wheel-spokes"/></g></g>
+        <g class="pr-line" stroke-width="3">
+          <circle cx="320" cy="415" r="7" fill="var(--pr-metal)"/>
+          <circle cx="600" cy="415" r="7" fill="var(--pr-metal)"/>
+        </g>
+        <g id="pr-far-leg" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path id="pr-far-leg-outline" stroke="var(--pr-outline)" stroke-width="13" d="M411.00 315.40L474.44 329.58L443.41 387.83"/>
+          <path id="pr-far-leg-color" stroke="var(--pr-far-foot)" stroke-width="8" d="M411.00 315.40L474.44 329.58L443.41 387.83"/>
+        </g>
+        <g id="pr-far-foot" class="pr-line" stroke-width="2.5" transform="translate(451.41 395.83)">
+          <path d="M-11-10Q-7-13-4-8L14-5L24 2Q15 8 8 3Q0 8-7 3L-17 3Z" fill="var(--pr-far-foot)"/>
+          <path d="M-12 7H18" fill="none" stroke-width="5"/>
+        </g>
+        <path d="M320 403L427 392C460 389 465 439 430 440L320 426C302 425 302 404 320 403Z" fill="none" stroke="var(--pr-outline)" stroke-width="3"/>
+        <g fill="none" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M320 415L402 330L431 415H320L402 330L559 330L431 415M559 330L600 415" stroke="var(--pr-outline)" stroke-width="12"/>
+          <path d="M320 415L402 330L431 415H320M402 330L559 330L431 415M559 330L600 415" stroke="var(--pr-bike)" stroke-width="7"/>
+          <path d="M411 339L544 339" stroke="var(--pr-bike-light)" stroke-width="2"/>
+          <path d="M402 330L397 309M559 330L550 300L576 292" stroke="var(--pr-outline)" stroke-width="8"/>
+          <path d="M398 314L401 326M552 306L557 325" stroke="var(--pr-metal)" stroke-width="4"/>
+          <path d="M570 294L584 290Q595 290 595 301" stroke="var(--pr-outline)" stroke-width="9"/>
+          <path d="M586 299Q572 314 583 353" stroke="var(--pr-outline)" stroke-width="1.6"/>
+        </g>
+        <path d="M370 306Q393 298 422 305Q428 310 421 316H378Q367 315 370 306Z" fill="var(--pr-outline)"/>
+        <path d="M376 306Q397 303 417 308" fill="none" stroke="var(--pr-metal)" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="431" cy="415" r="23" fill="var(--pr-metal)" stroke="var(--pr-outline)" stroke-width="3.5"/>
+        <circle cx="431" cy="415" r="15" fill="var(--pr-road)" stroke="var(--pr-outline)" stroke-width="2"/>
+        <g id="pr-crank" class="pr-line" fill="none" transform="translate(431 415) rotate(136.7928)">
+          <path d="M-28 0H28" stroke-width="7"/>
+          <path d="M-28 0H28" stroke="var(--pr-metal)" stroke-width="3"/>
+        </g>
+        <circle cx="431" cy="415" r="5" fill="var(--pr-outline)"/>
+        <g id="pr-near-leg" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path id="pr-near-leg-outline" stroke="var(--pr-outline)" stroke-width="14" d="M421.00 318.40L447.46 377.77L402.59 426.17"/>
+          <path id="pr-near-leg-color" stroke="var(--pr-foot)" stroke-width="9" d="M421.00 318.40L447.46 377.77L402.59 426.17"/>
+        </g>
+        <g id="pr-near-foot" class="pr-line" stroke-width="2.5" transform="translate(410.59 434.17)">
+          <path d="M-11-10Q-7-13-4-8L14-5L24 2Q15 8 8 3Q0 8-7 3L-17 3Z" fill="var(--pr-foot)"/>
+          <path d="M-2-4L8 3M6-4L17 3" fill="none" stroke="var(--pr-far-foot)" stroke-width="1.5"/>
+          <path d="M-12 7H18" fill="none" stroke-width="5"/>
+        </g>
+      </g>
+
+      <g id="pr-bird" transform="translate(0 -1.5968679646183719)">
+        <path d="M355 280Q327 268 303 276L322 290L307 297Q338 310 363 299Z" class="pr-feather"/>
+        <path d="M314 283L342 291M320 294L341 297" class="pr-feather-mark"/>
+        <path d="M427 253Q400 238 371 251C344 264 340 301 367 316C387 332 428 331 449 312C472 292 471 271 461 249C451 228 447 212 455 190C461 168 482 158 504 166C523 172 527 191 516 206C504 220 486 217 482 232C480 244 492 268 480 288C473 300 460 306 447 306" class="pr-feather"/>
+        <path d="M457 212Q460 238 467 254Q482 293 439 307C426 322 397 326 377 317C407 341 450 325 465 307C484 299 494 278 480 249Q473 232 487 222Z" fill="var(--pr-feather-shade)"/>
+        <path d="M371 262Q356 267 356 282" fill="none" stroke="var(--pr-cloud)" stroke-width="4" stroke-linecap="round"/>
+        <path d="M460 238Q430 230 409 240Q427 242 423 251Q443 247 466 248Z" fill="var(--pr-scarf)" class="pr-line" stroke-width="2.5"/>
+        <path id="pr-scarf-tail" d="M456 240Q428 222 392 231L406 219L390 214Q430 209 463 232Z" fill="var(--pr-scarf)" class="pr-line" stroke-width="2.5" transform="rotate(-1.2372630493485208 457 237)"/>
+        <path d="M454 236Q467 240 479 235L482 246Q467 253 457 246Z" fill="var(--pr-scarf)" class="pr-line" stroke-width="2.5"/>
+        <path d="M454 179Q452 151 475 143C496 134 521 148 525 175L517 180Q491 164 460 185Z" fill="var(--pr-helmet)" class="pr-line" stroke-width="3.5"/>
+        <path d="M466 165Q467 152 479 148M481 160Q483 149 490 147M498 161Q500 152 498 149" fill="none" stroke="var(--pr-outline)" stroke-width="4" stroke-linecap="round"/>
+        <path d="M461 182L478 211L495 211" fill="none" stroke="var(--pr-outline)" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M456 180Q487 166 522 179" fill="none" stroke="var(--pr-outline)" stroke-width="4" stroke-linecap="round"/>
+        <path d="M513 199L684 203C654 216 634 232 606 245C568 265 523 246 513 216Z" fill="var(--pr-pouch)" class="pr-line" stroke-width="3.5"/>
+        <path d="M529 217Q554 256 604 237" fill="none" stroke="var(--pr-bill)" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+        <path d="M518 187Q578 184 657 197L685 203Q603 214 517 205Z" fill="var(--pr-bill)" class="pr-line" stroke-width="3.5"/>
+        <path d="M527 191Q585 191 651 199" fill="none" stroke="var(--pr-bill-light)" stroke-width="4" stroke-linecap="round"/>
+        <path d="M680 204Q684 210 687 204" fill="none" stroke="var(--pr-outline)" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="505" cy="189" r="10" fill="var(--pr-feather-shade)"/>
+        <g id="pr-eye" transform="translate(0 0) scale(1 1)">
+          <ellipse cx="506" cy="188" rx="4.3" ry="5.4" fill="var(--pr-outline)"/>
+          <circle cx="507.1" cy="186.4" r="1.5" fill="var(--pr-feather)"/>
+        </g>
+        <path d="M499 176Q505 173 511 177" fill="none" stroke="var(--pr-outline)" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M369 274Q392 249 422 269C448 285 482 294 518 294L543 289Q551 287 552 294L538 306C502 320 456 313 429 302Q389 319 369 300Q362 290 369 274Z" class="pr-feather"/>
+        <path d="M378 281Q396 282 412 296Q452 304 472 303M379 291Q393 297 407 302M383 303Q395 307 410 305" class="pr-feather-mark"/>
+        <path d="M516 302L540 298M520 307L535 304" class="pr-feather-mark"/>
+      </g>
+      <g id="pr-breeze" fill="none" stroke="var(--pr-cloud)" stroke-width="3" stroke-linecap="round" opacity="0.28" transform="translate(-8.215664465074376 0)">
+        <path d="M231 252H275M218 264H253M255 237H283"/>
+      </g>
+    </g>
+  </svg>
