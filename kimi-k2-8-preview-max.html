@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鹈鹕骑自行车</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(160deg, #dff1fb, #fdf6ec);
+    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    padding: 24px;
+  }
+  .card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 24px 28px 28px;
+    box-shadow: 0 12px 40px rgba(50, 80, 110, .18);
+    max-width: 860px;
+    width: 100%;
+  }
+  h1 { font-size: 22px; color: #37474f; text-align: center; margin-bottom: 14px; letter-spacing: 2px; }
+  svg { width: 100%; height: auto; display: block; border-radius: 14px; }
+  .panel {
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .panel label { font-size: 15px; color: #455a64; font-weight: 600; white-space: nowrap; }
+  input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: min(420px, 60vw);
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #8fd0a0, #f2b25c, #ef6351);
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 5px solid #ef6351;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .25);
+    cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 5px solid #ef6351;
+    cursor: pointer;
+  }
+  #kmh {
+    min-width: 82px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    background: #eceff1;
+    color: #e65100;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>鹈鹕骑自行车</h1>
+    <svg id="scene" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="鹈鹕骑自行车的动画">
+      <defs>
+        <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#8fd3f0"/>
+          <stop offset="1" stop-color="#eaf8ff"/>
+        </linearGradient>
+      </defs>
+
+      <rect width="800" height="500" fill="url(#skyGrad)"/>
+
+      <circle cx="680" cy="70" r="70" fill="#fff9c4" opacity="0.5"/>
+      <g transform="translate(680,70)">
+        <g id="sunRays" stroke="#ffd54f" stroke-width="6" stroke-linecap="round">
+          <path d="M56,0 L40,0"/><path d="M-56,0 L-40,0"/>
+          <path d="M0,56 L0,40"/><path d="M0,-56 L0,-40"/>
+          <path d="M39.6,39.6 L28.3,28.3"/><path d="M-39.6,39.6 L-28.3,28.3"/>
+          <path d="M39.6,-39.6 L28.3,-28.3"/><path d="M-39.6,-39.6 L-28.3,-28.3"/>
+        </g>
+        <circle r="30" fill="#ffca28" stroke="#ffb300" stroke-width="3"/>
+      </g>
+
+      <g id="cloudLayer" fill="#ffffff" opacity="0.95">
+        <g transform="translate(100,95)"><ellipse rx="34" ry="18"/><ellipse cx="-24" cy="8" rx="24" ry="14"/><ellipse cx="26" cy="8" rx="26" ry="15"/></g>
+        <g transform="translate(350,150)"><ellipse rx="30" ry="16"/><ellipse cx="-22" cy="7" rx="22" ry="13"/><ellipse cx="24" cy="7" rx="24" ry="14"/></g>
+        <g transform="translate(590,80)"><ellipse rx="36" ry="19"/><ellipse cx="-26" cy="8" rx="25" ry="15"/><ellipse cx="28" cy="8" rx="26" ry="15"/></g>
+        <g transform="translate(900,95)"><ellipse rx="34" ry="18"/><ellipse cx="-24" cy="8" rx="24" ry="14"/><ellipse cx="26" cy="8" rx="26" ry="15"/></g>
+        <g transform="translate(1150,150)"><ellipse rx="30" ry="16"/><ellipse cx="-22" cy="7" rx="22" ry="13"/><ellipse cx="24" cy="7" rx="24" ry="14"/></g>
+        <g transform="translate(1390,80)"><ellipse rx="36" ry="19"/><ellipse cx="-26" cy="8" rx="25" ry="15"/><ellipse cx="28" cy="8" rx="26" ry="15"/></g>
+        <path d="M210,130 q6,-7 12,0 q6,-7 12,0" stroke="#90a4ae" stroke-width="2" fill="none"/>
+        <path d="M245,118 q5,-6 10,0 q5,-6 10,0" stroke="#90a4ae" stroke-width="2" fill="none"/>
+      </g>
+
+      <g id="hillLayer1" fill="#dcedc8">
+        <path d="M0,460 C130,405 270,405 400,452 C530,408 670,412 800,458 L800,460 L0,460 Z"/>
+        <path transform="translate(800,0)" d="M0,460 C130,405 270,405 400,452 C530,408 670,412 800,458 L800,460 L0,460 Z"/>
+      </g>
+      <g id="hillLayer2" fill="#c5e1a5">
+        <path d="M0,460 C100,420 220,418 340,455 C460,425 600,420 800,455 L800,460 L0,460 Z"/>
+        <path transform="translate(800,0)" d="M0,460 C100,420 220,418 340,455 C460,425 600,420 800,455 L800,460 L0,460 Z"/>
+      </g>
+
+      <rect x="0" y="454" width="800" height="46" fill="#aed581"/>
+      <rect x="0" y="454" width="800" height="6" fill="#7cb342"/>
+      <g id="groundMarks" fill="#8bc34a">
+        <rect x="10" y="486" width="36" height="7" rx="3.5"/><rect x="90" y="486" width="36" height="7" rx="3.5"/>
+        <rect x="170" y="486" width="36" height="7" rx="3.5"/><rect x="250" y="486" width="36" height="7" rx="3.5"/>
+        <rect x="330" y="486" width="36" height="7" rx="3.5"/><rect x="410" y="486" width="36" height="7" rx="3.5"/>
+        <rect x="490" y="486" width="36" height="7" rx="3.5"/><rect x="570" y="486" width="36" height="7" rx="3.5"/>
+        <rect x="650" y="486" width="36" height="7" rx="3.5"/><rect x="730" y="486" width="36" height="7" rx="3.5"/>
+        <rect x="810" y="486" width="36" height="7" rx="3.5"/><rect x="890" y="486" width="36" height="7" rx="3.5"/>
+        <rect x="970" y="486" width="36" height="7" rx="3.5"/><rect x="1050" y="486" width="36" height="7" rx="3.5"/>
+        <rect x="1130" y="486" width="36" height="7" rx="3.5"/><rect x="1210" y="486" width="36" height="7" rx="3.5"/>
+        <rect x="1290" y="486" width="36" height="7" rx="3.5"/><rect x="1370" y="486" width="36" height="7" rx="3.5"/>
+        <rect x="1450" y="486" width="36" height="7" rx="3.5"/><rect x="1530" y="486" width="36" height="7" rx="3.5"/>
+      </g>
+
+      <g id="wind"></g>
+      <ellipse id="shadow" cx="412" cy="460" rx="150" ry="7" fill="rgba(0,0,0,0.18)"/>
+
+      <g id="rider">
+        <g id="pedalFar">
+          <ellipse cx="0" cy="-8" rx="9" ry="5.5" fill="#f9a825"/>
+          <rect x="-11" y="-3" width="22" height="7" rx="3" fill="#455a64"/>
+        </g>
+        <path id="legFar" fill="none" stroke="#e65100" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+        <path d="M466,266 Q484,254 498,264" stroke="#e5eaee" stroke-width="9" fill="none" stroke-linecap="round"/>
+
+        <g transform="translate(300,385)">
+          <circle r="72" fill="#ffffff" fill-opacity="0.6" stroke="#37474f" stroke-width="11"/>
+          <circle r="62" fill="none" stroke="#90a4ae" stroke-width="3"/>
+          <g id="wbSpin" stroke="#b0bec5" stroke-width="2.5">
+            <path d="M0,-58 L0,58 M-58,0 L58,0 M-41,-41 L41,41 M-41,41 L41,-41"/>
+            <rect x="-4" y="-66" width="8" height="10" rx="2" fill="#ff5252" stroke="none"/>
+          </g>
+          <circle r="6" fill="#546e7a"/>
+        </g>
+        <g transform="translate(525,385)">
+          <circle r="72" fill="#ffffff" fill-opacity="0.6" stroke="#37474f" stroke-width="11"/>
+          <circle r="62" fill="none" stroke="#90a4ae" stroke-width="3"/>
+          <g id="wfSpin" stroke="#b0bec5" stroke-width="2.5">
+            <path d="M0,-58 L0,58 M-58,0 L58,0 M-41,-41 L41,41 M-41,41 L41,-41"/>
+            <rect x="-4" y="-66" width="8" height="10" rx="2" fill="#ff5252" stroke="none"/>
+          </g>
+          <circle r="6" fill="#546e7a"/>
+        </g>
+
+        <g id="bikeFrame" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <g stroke="#616161" stroke-width="3">
+            <path d="M374,384 L307,379"/>
+            <path d="M374,402 L307,392"/>
+          </g>
+          <path d="M300,385 L388,390" stroke="#ef6351" stroke-width="7"/>
+          <path d="M300,385 L364,303" stroke="#ef6351" stroke-width="7"/>
+          <path d="M364,303 L388,390" stroke="#ef6351" stroke-width="9"/>
+          <path d="M364,303 L498,298" stroke="#ef6351" stroke-width="9"/>
+          <path d="M388,390 L493,330" stroke="#ef6351" stroke-width="10"/>
+          <path d="M498,298 L493,330" stroke="#ef6351" stroke-width="9"/>
+          <path d="M498,298 L525,385" stroke="#ef6351" stroke-width="8"/>
+          <path d="M498,298 L504,281" stroke="#455a64" stroke-width="7"/>
+          <path d="M504,281 Q506,269 488,270" stroke="#455a64" stroke-width="7"/>
+          <path d="M474,271 L494,270" stroke="#37474f" stroke-width="9"/>
+          <path d="M342,302 Q364,288 388,300 Q366,310 342,306 Z" fill="#5d4037" stroke="none"/>
+        </g>
+
+        <g transform="translate(388,390)">
+          <g id="crankSpin">
+            <circle r="15" fill="#ef6351" stroke="#d84a3a" stroke-width="2"/>
+            <circle cx="0" cy="-9.5" r="1.8" fill="#ffffff"/>
+            <circle cx="9" cy="3" r="1.8" fill="#ffffff"/>
+            <circle cx="-9" cy="3" r="1.8" fill="#ffffff"/>
+            <path d="M0,0 L0,-30" stroke="#455a64" stroke-width="7" stroke-linecap="round"/>
+            <path d="M0,0 L0,30" stroke="#455a64" stroke-width="7" stroke-linecap="round"/>
+          </g>
+          <circle r="5" fill="#37474f"/>
+        </g>
+
+        <g id="pelican">
+          <path d="M314,234 L274,208 Q300,248 318,268 Z" fill="#eceff1" stroke="#cfd8dc" stroke-width="2"/>
+          <ellipse cx="370" cy="252" rx="70" ry="62" fill="#fafafa" stroke="#e3e8ec" stroke-width="2" transform="rotate(-8 370 252)"/>
+          <ellipse cx="386" cy="280" rx="44" ry="32" fill="#eef2f5" transform="rotate(-8 386 280)"/>
+          <path d="M410,222 Q436,196 448,176" stroke="#fafafa" stroke-width="30" stroke-linecap="round" fill="none"/>
+          <circle cx="452" cy="168" r="31" fill="#fafafa" stroke="#e3e8ec" stroke-width="2"/>
+          <path d="M432,144 q-8,-12 -2,-20 M443,139 q-3,-12 3,-18" stroke="#cfd8dc" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <g id="beakG">
+            <g id="pouch">
+              <path d="M460,166 Q522,176 580,175 Q545,242 488,214 Q464,196 460,166 Z" fill="#ffb74d" stroke="#f9a825" stroke-width="2"/>
+              <path d="M472,184 Q512,198 550,192" stroke="#f9a825" stroke-width="2" fill="none" opacity="0.8"/>
+            </g>
+            <path d="M458,150 L580,175 L460,168 Z" fill="#f9a825" stroke="#e8930c" stroke-width="1.5" stroke-linejoin="round"/>
+          </g>
+          <g id="eyeG">
+            <circle cx="462" cy="156" r="5.5" fill="#263238"/>
+            <circle cx="464" cy="154" r="1.8" fill="#ffffff"/>
+          </g>
+          <path d="M424,152 Q452,114 482,152 Q452,140 424,152 Z" fill="#e53935"/>
+          <path d="M424,152 Q452,140 482,152" fill="none" stroke="#b71c1c" stroke-width="2"/>
+          <path d="M392,242 Q428,232 452,254 Q424,268 398,264 Q390,254 392,242 Z" fill="#f2f5f7" stroke="#dde3e8" stroke-width="2"/>
+          <path d="M408,262 C450,250 486,258 498,272" stroke="#fafafa" stroke-width="15" stroke-linecap="round" fill="none"/>
+        </g>
+
+        <path id="legNear" fill="none" stroke="#fb8c00" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+        <g id="pedalNear">
+          <ellipse cx="0" cy="-8" rx="9" ry="5.5" fill="#f9a825"/>
+          <rect x="-11" y="-3" width="22" height="7" rx="3" fill="#37474f"/>
+        </g>
+      </g>
+    </svg>
+
+    <div class="panel">
+      <label for="speed">骑行速度</label>
+      <input type="range" id="speed" min="0" max="100" value="32">
+      <span id="kmh">0 km/h</span>
+    </div>
+  </div>
+
+<script>
+(function () {
+  var svgNS = 'http://www.w3.org/2000/svg';
+  function $(id) { return document.getElementById(id); }
+  var slider = $('speed'), kmhEl = $('kmh');
+  var wbSpin = $('wbSpin'), wfSpin = $('wfSpin'), crankSpin = $('crankSpin');
+  var rider = $('rider'), shadow = $('shadow');
+  var legNear = $('legNear'), legFar = $('legFar');
+  var pedalNear = $('pedalNear'), pedalFar = $('pedalFar');
+  var pouch = $('pouch'), eyeG = $('eyeG');
+  var cloudLayer = $('cloudLayer'), hillLayer1 = $('hillLayer1'), hillLayer2 = $('hillLayer2');
+  var groundMarks = $('groundMarks'), sunRays = $('sunRays'), wind = $('wind');
+
+  var dist = 0, last = performance.now();
+  var BBx = 388, BBy = 390, CRANK = 30;
+  var HIP_NEAR = { x: 374, y: 304 }, HIP_FAR = { x: 384, y: 308 };
+  var L1 = 58, L2 = 58;
+
+  var streaks = [];
+  for (var i = 0; i < 6; i++) {
+    var l = document.createElementNS(svgNS, 'line');
+    l.setAttribute('stroke', '#ffffff');
+    l.setAttribute('stroke-width', 3);
+    l.setAttribute('stroke-linecap', 'round');
+    wind.appendChild(l);
+    streaks.push({
+      el: l,
+      x: Math.random() * 900,
+      y: 50 + Math.random() * 280,
+      len: 40 + Math.random() * 60,
+      k: 0.5 + Math.random() * 0.5
+    });
+  }
+
+  function legD(hx, hy, px, py) {
+    var dx = px - hx, dy = py - hy;
+    var d = Math.hypot(dx, dy);
+    var max = L1 + L2 - 0.5;
+    if (d > max) {
+      var s = max / d; dx *= s; dy *= s; d = max;
+      px = hx + dx; py = hy + dy;
+    }
+    var a = (L1 * L1 - L2 * L2 + d * d) / (2 * d);
+    var h = Math.sqrt(Math.max(0, L1 * L1 - a * a));
+    var ux = dx / d, uy = dy / d;
+    var ax = hx + a * ux, ay = hy + a * uy;
+    var kx = ax - h * uy, ky = ay + h * ux;
+    if (kx < ax) { kx = ax + h * uy; ky = ay - h * ux; }
+    return 'M' + hx + ',' + hy +
+      ' L' + kx.toFixed(1) + ',' + ky.toFixed(1) +
+      ' L' + px.toFixed(1) + ',' + py.toFixed(1);
+  }
+
+  function frame(now) {
+    var t = now / 1000;
+    var dt = Math.min((now - last) / 1000, 0.05);
+    last = now;
+
+    var v = slider.value * 5;
+    dist += v * dt;
+
+    var wheelA = dist / 72;
+    var crankA = wheelA * 2.2;
+    var wheelDeg = wheelA * 180 / Math.PI;
+    var crankDeg = crankA * 180 / Math.PI;
+
+    wbSpin.setAttribute('transform', 'rotate(' + wheelDeg + ')');
+    wfSpin.setAttribute('transform', 'rotate(' + wheelDeg + ')');
+    crankSpin.setAttribute('transform', 'rotate(' + crankDeg + ')');
+
+    var s = Math.sin(crankA), c = Math.cos(crankA);
+    var npx = BBx + CRANK * s, npy = BBy - CRANK * c;
+    var fpx = BBx - CRANK * s, fpy = BBy + CRANK * c;
+
+    legNear.setAttribute('d', legD(HIP_NEAR.x, HIP_NEAR.y, npx, npy));
+    legFar.setAttribute('d', legD(HIP_FAR.x, HIP_FAR.y, fpx, fpy));
+    pedalNear.setAttribute('transform', 'translate(' + npx + ' ' + npy + ') rotate(' + (-crankDeg) + ')');
+    pedalFar.setAttribute('transform', 'translate(' + fpx + ' ' + fpy + ') rotate(' + (-crankDeg) + ')');
+
+    var bob = 1.6 * Math.sin(2 * crankA);
+    var lean = -Math.min(4, v * 0.010);
+    rider.setAttribute('transform',
+      'translate(0 ' + bob.toFixed(2) + ') rotate(' + lean.toFixed(2) + ' 415 455)');
+    shadow.setAttribute('opacity', (0.9 - 0.06 * bob).toFixed(2));
+    shadow.setAttribute('transform',
+      'translate(412 460) scale(' + (1 - bob * 0.008).toFixed(3) + ' 1) translate(-412 -460)');
+
+    var wig = Math.min(1, v / 120 + 0.12);
+    pouch.setAttribute('transform',
+      'rotate(' + (5 * Math.sin(2 * crankA + 0.6) * wig).toFixed(2) + ' 460 166)');
+
+    var cyc = t % 3.4;
+    var sy = cyc < 0.14 ? 0.12 : 1;
+    eyeG.setAttribute('transform', 'translate(462 156) scale(1 ' + sy + ') translate(-462 -156)');
+
+    cloudLayer.setAttribute('transform',
+      'translate(' + (-((dist * 0.06 + t * 4) % 800)).toFixed(1) + ' 0)');
+    hillLayer1.setAttribute('transform',
+      'translate(' + (-(dist * 0.18 % 800)).toFixed(1) + ' 0)');
+    hillLayer2.setAttribute('transform',
+      'translate(' + (-(dist * 0.32 % 800)).toFixed(1) + ' 0)');
+    groundMarks.setAttribute('transform',
+      'translate(' + (-(dist % 80)).toFixed(1) + ' 0)');
+    sunRays.setAttribute('transform', 'rotate(' + ((t * 8) % 360) + ')');
+
+    var wOp = Math.min(0.8, Math.max(0, (v - 130) / 280));
+    for (var i = 0; i < streaks.length; i++) {
+      var st = streaks[i];
+      st.x -= v * 1.5 * st.k * dt;
+      if (st.x + st.len < 0) {
+        st.x = 800 + Math.random() * 120;
+        st.y = 50 + Math.random() * 280;
+      }
+      st.el.setAttribute('x1', st.x.toFixed(1));
+      st.el.setAttribute('x2', (st.x + st.len).toFixed(1));
+      st.el.setAttribute('y1', st.y);
+      st.el.setAttribute('y2', st.y);
+      st.el.setAttribute('opacity', (wOp * st.k).toFixed(2));
+    }
+
+    kmhEl.textContent = (v * 0.12).toFixed(1) + ' km/h';
+    requestAnimationFrame(frame);
+  }
+
+  kmhEl.textContent = (slider.value * 5 * 0.12).toFixed(1) + ' km/h';
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
