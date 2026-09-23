@@ -64,7 +64,8 @@
       <h2>怎么玩</h2>
       <div class="keys">
         <div><kbd>SPACE</kbd><kbd>↑</kbd><kbd>W</kbd> 或 点一下画面 —— 跳跃</div>
-        <div>落地前一瞬间按下也算数，落地立刻起跳。</div>
+        <div>落地前一瞬间按下也算数；刚骑出平台边缘的一小会儿也还能起跳。</div>
+        <div>撞上时会用粉色虚线圈出撞到的东西。</div>
         <div>结束后按 <kbd>SPACE</kbd> 或点击画面重新出发。</div>
         <div>越往后骑得越快，得分 = 距离(米) + 金币 × 10。</div>
       </div>
@@ -77,6 +78,7 @@
         <li><canvas data-icon="ramp" width="88" height="68"></canvas><span><b>斜坡集装箱</b>：顺坡骑上，再起跳够高处</span></li>
         <li><canvas data-icon="crab" width="88" height="68"></canvas><span><b>螃蟹 · 木箱 · 系缆桩</b>：跳过去</span></li>
         <li><canvas data-icon="gull" width="88" height="68"></canvas><span><b>海鸥</b>：从它下面骑过，别在这时起跳</span></li>
+        <li><canvas data-icon="block" width="88" height="68"></canvas><span><b>木台</b>：带黑黄条纹的一面是硬的，要跳上去</span></li>
         <li><canvas data-icon="pit" width="88" height="68"></canvas><span><b>码头缺口</b>：掉下去就是海</span></li>
       </ul>
     </div>
@@ -87,7 +89,7 @@
 <script>
 (() => {
 // @logic-start
-const PH = { G:0.8, JV:14, V0:6.2, VMAX:12.4, ACC:6.2/42000, BK:13, FR:15, STEP:14, SNAP:4, DEATH:-36, WIN:5 };
+const PH = { G:0.8, JV:14, V0:6.2, VMAX:12.4, ACC:6.2/42000, BK:13, FR:15, STEP:14, SNAP:4, DEATH:-36, WIN:5, COY:6 };
 const AIR = 0, TERR = 1;
 const speedAt = x => x <= 0 ? PH.V0 : Math.min(PH.VMAX, PH.V0 + x * PH.ACC);
 
@@ -108,20 +110,24 @@ function terrainAt(segs, x){
 
 // One fixed 1/60 s physics step. Shared by the game and by the level validator.
 function simStep(s, jump, W){
-  let x = s.x, h = s.h, vh = s.vh, g = s.g;
-  if (jump && g !== AIR){ vh = PH.JV; g = AIR; }
+  let x = s.x, h = s.h, vh = s.vh, g = s.g, coy = s.coy || 0;
+  // Jump from the ground, or within COY frames after rolling off an edge (coyote time).
+  if (jump && (g !== AIR || coy > 0)){ vh = PH.JV; g = AIR; coy = 0; }
   const nx = x + speedAt(x);
   let nh;
   if (g === AIR){ vh -= PH.G; nh = h + vh; } else nh = h;
   const tf = terrainAt(W.segs, nx + PH.FR);
-  if (tf > nh + PH.STEP) return { dead:true, why:'wall', x:nx, h:nh };
+  // Front wheel meets terrain well above the feet. Below pier level that means the rider
+  // fell short of a gap (sea); above it, they rode into the side of a raised deck.
+  if (tf > nh + PH.STEP) return { dead:true, why:nh < -2 ? 'water' : 'wall', x:nx, h:nh, wx:nx + PH.FR, wh:tf };
   const ts = Math.max(terrainAt(W.segs, nx - PH.BK), terrainAt(W.segs, nx), tf);
   let ng = AIR, sup = -Infinity;
   if (g !== AIR){
     if (g !== TERR && g.x0 <= nx + PH.FR && g.x1 >= nx - PH.BK){ sup = g.h; ng = g; }
     if (ts >= nh - PH.SNAP && ts > sup){ sup = ts; ng = TERR; }
-    if (ng === AIR) vh = 0; else { nh = sup; vh = 0; }
+    if (ng === AIR){ vh = 0; coy = PH.COY; } else { nh = sup; vh = 0; }
   } else {
+    coy = Math.max(0, coy - 1);
     if (vh <= 0){
       for (const p of W.plats){
         if (p.x0 > nx + PH.FR || p.x1 < nx - PH.BK) continue;
@@ -129,15 +135,15 @@ function simStep(s, jump, W){
       }
     }
     if (nh <= ts && ts >= sup){ sup = ts; ng = TERR; }
-    if (ng !== AIR){ nh = sup; vh = 0; }
+    if (ng !== AIR){ nh = sup; vh = 0; coy = 0; }
   }
   if (nh < PH.DEATH) return { dead:true, why:'water', x:nx, h:nh };
   const bx0 = nx - 15, bx1 = nx + 17, by0 = nh + 4, by1 = nh + 46;
   for (const z of W.haz){
     if (z.x0 + 3 > bx1 || z.x1 - 3 < bx0) continue;
-    if (z.h0 + 2 < by1 && z.h1 - 3 > by0) return { dead:true, why:z.kind, x:nx, h:nh };
+    if (z.h0 + 2 < by1 && z.h1 - 3 > by0) return { dead:true, why:z.kind, x:nx, h:nh, z };
   }
-  return { x:nx, h:nh, vh, g:ng };
+  return { x:nx, h:nh, vh, g:ng, coy };
 }
 
 const HZ = { crab:{w:36,h:18}, crate:{w:34,h:32}, bollard:{w:24,h:34}, tall:{w:34,h:62}, gull:{w:42,h:20} };
@@ -276,7 +282,14 @@ function validate(world, C, startX, goalX, endX){
     let cm = null, cg = false;
     if (!c.dead){
       if (c.g !== AIR){ cm = ev(c); cg = true; }
-      else { const L = fly(c); if (L){ if (!flat(s) || !flat(L)) lands.push(L); cm = ev(L); } }
+      else {
+        const L = fly(c); if (L){ if (!flat(s) || !flat(L)) lands.push(L); cm = ev(L); }
+        for (let f = c; !f.dead && f.g === AIR && f.coy > 0; f = simStep(f, false, W)){
+          const cj = simStep(f, true, W);
+          if (cj.dead) continue;
+          const CL = fly(cj); if (CL && (!flat(s) || !flat(CL))) lands.push(CL);
+        }
+      }
     }
     const j = simStep(s, true, W);
     let jm = null;
@@ -364,9 +377,16 @@ function stepGame(){
   tick++;
   for (const p of parts){ p.x += p.vx; p.h += p.vh; p.vh -= 0.25; p.life -= 0.03; }
   parts = parts.filter(p => p.life > 0);
-  if (state === 'dead'){ fall.vy -= 0.7; fall.dy += fall.vy; fall.rot += death.why === 'water' ? 0.02 : -0.13; return; }
+  if (state === 'dead'){
+    if (fall.hold > 0){ fall.hold--; return; }
+    fall.vy -= 0.7; fall.dy += fall.vy;
+    if (death.why === 'water'){ fall.rot += 0.02; return; }
+    // Knocked back: a small hop, then the rider stays beside what it hit.
+    if (fall.dy <= 0){ fall.dy = 0; fall.vy = 0; }
+    fall.rot += (-0.45 - fall.rot) * 0.15;
+  }
   if (state !== 'run') return;
-  const jump = jumpBuf > 0 && P.g !== AIR;
+  const jump = jumpBuf > 0 && (P.g !== AIR || P.coy > 0);
   if (jumpBuf > 0) jumpBuf--;
   if (jump) jumpBuf = 0;
   const wasAir = P.g === AIR;
@@ -392,8 +412,10 @@ function stepGame(){
 
 function die(n){
   state = 'dead'; deadAt = performance.now();
-  death = n; prevP = P;
-  fall = { dy:0, vy:n.why === 'water' ? 0 : 7, rot:0 };
+  death = n; death.t = tick;
+  // Freeze the rider at the exact contact point so it is clear what was hit.
+  P = { x:n.x, h:n.h, vh:0, g:AIR, coy:0 }; prevP = P;
+  fall = { dy:0, vy:n.why === 'water' ? 0 : 4, rot:0, hold:n.why === 'water' ? 0 : 12 };
   if (n.why === 'water') burst(n.x, -58, 22, '#DFF4F2', 4, 3);
   else burst(n.x + 14, n.h + 26, 14, '#FFFFFF', 3.5, 1.5);
   const sc = score();
@@ -402,7 +424,7 @@ function die(n){
 
 function press(){
   if (state === 'ready'){ state = 'run'; return; }
-  if (state === 'run'){ jumpBuf = 7; return; }
+  if (state === 'run'){ jumpBuf = 9; return; }
   if (state === 'dead' && performance.now() - deadAt > 450){ reset(); state = 'run'; }
 }
 window.addEventListener('keydown', e => {
@@ -653,7 +675,36 @@ function panel(c, lines){
   c.textAlign = 'center'; c.textBaseline = 'middle';
   lines.forEach((l, i) => { c.font = l.f; c.fillStyle = l.c || INK; c.fillText(l.t, LW / 2, y + 32 + i * 34); });
 }
-const WHY = { crab:'撞上螃蟹了！', crate:'撞上木箱了！', tall:'撞上木箱堆了！', bollard:'撞上系缆桩了！', gull:'和海鸥撞了个满怀！', wall:'一头撞上了台子！', water:'扑通——掉进海里了！' };
+function drawBlock(c, x, y, w, h){
+  drawContainer(c, x, y, w, h, '#E3A93B');
+  c.save(); c.beginPath(); c.rect(x + 1.5, y + 1.5, 10, h - 3); c.clip();
+  c.fillStyle = INK; c.fillRect(x, y, 12, h);
+  c.fillStyle = GOLD;
+  for (let k = -12; k < h + 12; k += 12){ c.beginPath(); c.moveTo(x, y + k); c.lineTo(x + 12, y + k - 8); c.lineTo(x + 12, y + k - 2); c.lineTo(x, y + k + 6); c.closePath(); c.fill(); }
+  c.restore();
+  c.strokeStyle = INK; c.lineWidth = 2.5; c.strokeRect(x, y, w, h);
+}
+function drawCulprit(c, cam, t){
+  const pulse = 0.75 + 0.25 * Math.sin(t * 0.3);
+  c.save(); c.strokeStyle = PINK; c.lineWidth = 3.5; c.setLineDash([7, 5]); c.globalAlpha = pulse;
+  if (death.z){
+    const z = death.z;
+    rrect(c, z.x0 - cam - 7, GY - z.h1 - 7, z.x1 - z.x0 + 14, z.h1 - z.h0 + 12, 8); c.stroke();
+  } else if (death.why === 'wall'){
+    const x = death.wx - cam;
+    rrect(c, x - 8, GY - death.wh - 7, 22, death.wh + 12, 8); c.stroke();
+  }
+  c.restore();
+  if (death.why !== 'water'){
+    const cx = (death.z ? Math.max(death.z.x0, death.x + 10) : death.wx) - cam;
+    const cy = death.z ? GY - Math.min(death.z.h1, Math.max(death.z.h0, death.h + 24)) : GY - death.h - 20;
+    c.save(); c.translate(cx, cy); c.rotate(t * 0.02);
+    c.fillStyle = '#FFF4C2'; c.strokeStyle = INK; c.lineWidth = 2.2; c.beginPath();
+    for (let i = 0; i < 16; i++){ const r = i % 2 ? 6 : 15, a = i * Math.PI / 8; c.lineTo(Math.cos(a) * r, Math.sin(a) * r); }
+    c.closePath(); c.fill(); c.stroke(); c.restore();
+  }
+}
+const WHY = { crab:'撞上螃蟹了！', crate:'撞上木箱了！', tall:'撞上木箱堆了！', bollard:'撞上系缆桩了！', gull:'和海鸥撞了个满怀！', wall:'撞上了木台的侧面！', water:'扑通——掉进海里了！' };
 
 function render(alpha){
   ctx.setTransform(scale, 0, 0, scale, 0, 0);
@@ -665,15 +716,17 @@ function render(alpha){
   for (const s of world.segs){
     if (!inView(s) || s.type === 'pit') continue;
     if (s.type === 'ramp') drawRampShape(ctx, s.x0 - cam, s.x1 - cam, GY, s.h1);
-    else drawContainer(ctx, s.x0 - cam, GY - s.h0, s.x1 - s.x0, s.h0, s.style === 'block' ? '#E3A93B' : '#3F77A8');
+    else if (s.style === 'block') drawBlock(ctx, s.x0 - cam, GY - s.h0, s.x1 - s.x0, s.h0);
+    else drawContainer(ctx, s.x0 - cam, GY - s.h0, s.x1 - s.x0, s.h0, '#3F77A8');
   }
   for (const p of world.plats) if (inView(p)) drawPlank(ctx, p.x0 - cam, p.x1 - cam, GY - p.h);
   for (const co of world.coins) if (!co.taken && co.x > cam - 20 && co.x < cam + LW + 20) drawCoin(ctx, co.x - cam, GY - co.h, t);
   for (const z of world.haz) if (inView(z)) drawHaz(ctx, z, z.x0 - cam, t);
   const crank = rx / 11;
+  if (state === 'dead') drawCulprit(ctx, cam, t);
   if (state === 'dead'){
     const sy = death.why === 'water' ? WATER_Y + 6 - fall.dy * 0.2 : GY - death.h - fall.dy;
-    if (death.why !== 'water' || fall.dy > -40) drawRider(ctx, P.x - cam, Math.min(sy, LH + 80), crank, true, fall.rot);
+    if (death.why !== 'water' || fall.dy > -40) drawRider(ctx, P.x - cam - (death.why === 'water' ? 0 : Math.min(10, (tick - death.t) * 0.6)), Math.min(sy, LH + 80), crank, true, fall.rot);
   } else {
     drawRider(ctx, rx - cam, GY - rh, state === 'run' ? crank : 0, P.g === AIR, P.g === AIR ? -P.vh * 0.012 : 0);
   }
@@ -723,6 +776,7 @@ document.querySelectorAll('canvas[data-icon]').forEach(el => {
   else if (k === 'ramp'){ c.save(); c.scale(0.5, 0.5); drawRampShape(c, 4, 44, 64, 34); drawContainer(c, 44, 30, 40, 34, '#3F77A8'); c.restore(); }
   else if (k === 'crab'){ c.save(); c.scale(0.75, 0.75); drawCrab(c, 2, 42, 36, 18, 0); drawCrate(c, 38, 42, 20, 22); c.restore(); }
   else if (k === 'gull'){ drawGull(c, 1, 28, 42, 20, 3); }
+  else if (k === 'block'){ drawBlock(c, 6, 12, 34, 20); c.fillStyle = '#B7784A'; c.fillRect(0, 32, 44, 2); }
   else if (k === 'pit'){
     c.fillStyle = '#3A96A2'; c.fillRect(0, 20, 44, 14);
     c.fillStyle = '#B7784A'; c.strokeStyle = INK; c.lineWidth = 1.6;
