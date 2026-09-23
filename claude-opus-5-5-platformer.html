@@ -29,6 +29,12 @@
   h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,6vw,56px);line-height:1;margin:0;letter-spacing:.02em;text-wrap:balance}
   h1 em{font-style:normal;color:var(--pink)}
   .intro{display:grid;gap:8px;justify-items:start;max-width:34em}
+  .meta{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+  .langs{display:inline-flex;border:2px solid var(--ink);border-radius:999px;overflow:hidden;background:#fff}
+  .langs button{font:600 12px/1 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;letter-spacing:.04em;color:var(--ink);background:transparent;border:0;padding:5px 12px;cursor:pointer}
+  .langs button + button{border-left:2px solid var(--ink)}
+  .langs button[aria-pressed="true"]{background:var(--ink);color:#fff}
+  .langs button:focus-visible{outline:3px solid var(--pink);outline-offset:-3px}
   .tag{margin:0;color:var(--muted);font-size:15px;line-height:1.65}
   .ver{font-family:var(--num);font-size:11px;letter-spacing:.06em;color:var(--ink);background:#fff;border:2px solid var(--ink);border-radius:999px;padding:2px 10px;font-variant-numeric:tabular-nums}
   .stage{position:relative;border:3px solid var(--ink);border-radius:14px;overflow:hidden;box-shadow:6px 6px 0 var(--ink);background:#BFE3E6}
@@ -39,7 +45,8 @@
   .panel{background:var(--card);border:2px solid var(--ink);border-radius:12px;padding:14px 16px;display:grid;gap:10px}
   .panel h2{font-family:var(--display);font-weight:400;font-size:21px;margin:0}
   .keys{display:grid;gap:8px;font-size:14px;line-height:1.5}
-  .keys div{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+  .keys div{line-height:1.9}
+  .keys kbd{display:inline-block;margin-right:4px;line-height:1.3}
   kbd{font-family:var(--num);font-size:11px;letter-spacing:.04em;border:2px solid var(--ink);border-bottom-width:4px;border-radius:6px;padding:2px 7px;background:#fff;color:var(--ink)}
   ul.legend{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px 14px}
   .legend li{display:flex;align-items:center;gap:10px;font-size:14px;line-height:1.35}
@@ -53,41 +60,47 @@
 
 <main class="wrap">
   <header>
-    <h1>鹈鹕<em>单车</em>跑酷</h1>
+    <h1 data-i18n="h1">鹈鹕<em>单车</em>跑酷</h1>
     <div class="intro">
-      <p class="tag">骑着单车沿码头一路向前：跳上吊板、冲上斜坡、捡金币。撞上螃蟹、木箱或掉进海里，这一趟就结束了。</p>
-      <span class="ver" id="ver" title="版本号">v1.3 · 2026-09-23</span>
+      <p class="tag" data-i18n="tag">骑着单车沿码头一路向前：跳上吊板、冲上斜坡、捡金币。撞上螃蟹、木箱或掉进海里，这一趟就结束了。</p>
+      <div class="meta">
+        <span class="ver" id="ver" data-i18n-title="verTitle" title="版本号">v1.4 · 2026-09-23</span>
+        <div class="langs" role="group" aria-label="语言 / Language">
+          <button type="button" data-lang="zh" lang="zh-CN" aria-pressed="true">中文</button>
+          <button type="button" data-lang="en" lang="en" aria-pressed="false">English</button>
+        </div>
+      </div>
     </div>
   </header>
 
   <div class="stage">
-    <canvas id="game" tabindex="0" aria-label="鹈鹕单车跑酷游戏画面，按空格或点击跳跃"></canvas>
+    <canvas id="game" tabindex="0" data-i18n-aria="aria" aria-label="鹈鹕单车跑酷游戏画面，按空格或点击跳跃"></canvas>
   </div>
 
   <section class="help">
     <div class="panel">
-      <h2>怎么玩</h2>
+      <h2 data-i18n="howTitle">怎么玩</h2>
       <div class="keys">
-        <div><kbd>SPACE</kbd><kbd>↑</kbd><kbd>W</kbd> 或 点一下画面 —— 跳跃</div>
-        <div>落地前一瞬间按下也算数；刚骑出平台边缘的一小会儿也还能起跳。</div>
-        <div>撞上时会用粉色虚线圈出撞到的东西。</div>
-        <div>结束后按 <kbd>SPACE</kbd> 或点击画面重新出发。</div>
-        <div>越往后骑得越快，得分 = 距离(米) + 金币 × 10。</div>
+        <div data-i18n="k1"><kbd>SPACE</kbd><kbd>↑</kbd><kbd>W</kbd> 或 点一下画面 —— 跳跃</div>
+        <div data-i18n="k2">落地前一瞬间按下也算数；刚骑出平台边缘的一小会儿也还能起跳。</div>
+        <div data-i18n="k3">撞上时会用粉色虚线圈出撞到的东西。</div>
+        <div data-i18n="k4">结束后按 <kbd>SPACE</kbd> 或点击画面重新出发。</div>
+        <div data-i18n="k5">越往后骑得越快，得分 = 距离(米) + 金币 × 10。</div>
       </div>
     </div>
     <div class="panel">
-      <h2>码头上有什么</h2>
+      <h2 data-i18n="legendTitle">码头上有什么</h2>
       <ul class="legend">
-        <li><canvas data-icon="coin" width="88" height="68"></canvas><span><b>金币</b>：碰到就收下，+10 分</span></li>
-        <li><canvas data-icon="plank" width="88" height="68"></canvas><span><b>吊板</b>：平台，可以从下方穿过跳上去</span></li>
-        <li><canvas data-icon="ramp" width="88" height="68"></canvas><span><b>斜坡集装箱</b>：顺坡骑上，再起跳够高处</span></li>
-        <li><canvas data-icon="crab" width="88" height="68"></canvas><span><b>螃蟹 · 木箱 · 系缆桩</b>：跳过去</span></li>
-        <li><canvas data-icon="gull" width="88" height="68"></canvas><span><b>海鸥</b>：从它下面骑过，别在这时起跳</span></li>
-        <li><canvas data-icon="block" width="88" height="68"></canvas><span><b>木台</b>：带黑黄条纹的一面是硬的，要跳上去</span></li>
-        <li><canvas data-icon="pit" width="88" height="68"></canvas><span><b>码头缺口</b>：掉下去就是海</span></li>
+        <li><canvas data-icon="coin" width="88" height="68"></canvas><span data-i18n="lgCoin"><b>金币</b>：碰到就收下，+10 分</span></li>
+        <li><canvas data-icon="plank" width="88" height="68"></canvas><span data-i18n="lgPlank"><b>吊板</b>：平台，可以从下方穿过跳上去</span></li>
+        <li><canvas data-icon="ramp" width="88" height="68"></canvas><span data-i18n="lgRamp"><b>斜坡集装箱</b>：顺坡骑上，再起跳够高处</span></li>
+        <li><canvas data-icon="crab" width="88" height="68"></canvas><span data-i18n="lgCrab"><b>螃蟹 · 木箱 · 系缆桩</b>：跳过去</span></li>
+        <li><canvas data-icon="gull" width="88" height="68"></canvas><span data-i18n="lgGull"><b>海鸥</b>：从它下面骑过，别在这时起跳</span></li>
+        <li><canvas data-icon="block" width="88" height="68"></canvas><span data-i18n="lgBlock"><b>木台</b>：带黑黄条纹的一面是硬的，要跳上去</span></li>
+        <li><canvas data-icon="pit" width="88" height="68"></canvas><span data-i18n="lgPit"><b>码头缺口</b>：掉下去就是海</span></li>
       </ul>
     </div>
-    <p class="note wide">每一段码头出现在屏幕之前，都会用和游戏完全相同的物理规则把所有起跳时机模拟一遍：起点必须有一条留出反应时间的活路，而且不管你在什么时机跳上吊板、斜坡或集装箱，上去之后也一定还有路可下。看得见的范围里，不会出现无路可走、被迫撞上的死局。</p>
+    <p class="note wide" data-i18n="note">每一段码头出现在屏幕之前，都会用和游戏完全相同的物理规则把所有起跳时机模拟一遍：起点必须有一条留出反应时间的活路，而且不管你在什么时机跳上吊板、斜坡或集装箱，上去之后也一定还有路可下。看得见的范围里，不会出现无路可走、被迫撞上的死局。</p>
   </section>
 </main>
 
@@ -673,10 +686,13 @@ function drawHUD(c){
   c.font = '22px Bungee, "Arial Black", sans-serif';
   c.fillText(String(Math.floor(P.x / 30)).padStart(4, '0') + ' m', LW - 22, 31);
   c.font = '16px "ZCOOL KuaiLe", "PingFang SC", sans-serif'; c.fillStyle = 'rgba(30,42,56,.72)';
-  c.fillText('最佳 ' + best, LW - 22, 58);
+  c.fillText(TX().best + ' ' + best, LW - 22, 58);
 }
 function panel(c, lines){
-  const w = 460, h = 30 + lines.length * 34, x = (LW - w) / 2, y = 88;
+  let w = 460;
+  for (const l of lines){ c.font = l.f; w = Math.max(w, c.measureText(l.t).width + 64); }
+  w = Math.min(w, LW - 40);
+  const h = 30 + lines.length * 34, x = (LW - w) / 2, y = 88;
   c.fillStyle = INK; rrect(c, x + 6, y + 6, w, h, 14); c.fill();
   c.fillStyle = '#F4FAF8'; c.strokeStyle = INK; c.lineWidth = 3; rrect(c, x, y, w, h, 14); c.fill(); c.stroke();
   c.textAlign = 'center'; c.textBaseline = 'middle';
@@ -711,7 +727,82 @@ function drawCulprit(c, cam, t){
     c.closePath(); c.fill(); c.stroke(); c.restore();
   }
 }
-const WHY = { crab:'撞上螃蟹了！', crate:'撞上木箱了！', tall:'撞上木箱堆了！', bollard:'撞上系缆桩了！', gull:'和海鸥撞了个满怀！', wall:'撞上了木台的侧面！', water:'扑通——掉进海里了！' };
+/* ---------- language ---------- */
+const I18N = {
+  zh: {
+    title:'鹈鹕单车跑酷', h1:'鹈鹕<em>单车</em>跑酷',
+    tag:'骑着单车沿码头一路向前：跳上吊板、冲上斜坡、捡金币。撞上螃蟹、木箱或掉进海里，这一趟就结束了。',
+    verTitle:'版本号', aria:'鹈鹕单车跑酷游戏画面，按空格或点击跳跃',
+    howTitle:'怎么玩',
+    k1:'<kbd>SPACE</kbd><kbd>↑</kbd><kbd>W</kbd> 或 点一下画面 —— 跳跃',
+    k2:'落地前一瞬间按下也算数；刚骑出平台边缘的一小会儿也还能起跳。',
+    k3:'撞上时会用粉色虚线圈出撞到的东西。',
+    k4:'结束后按 <kbd>SPACE</kbd> 或点击画面重新出发。',
+    k5:'越往后骑得越快，得分 = 距离(米) + 金币 × 10。',
+    legendTitle:'码头上有什么',
+    lgCoin:'<b>金币</b>：碰到就收下，+10 分',
+    lgPlank:'<b>吊板</b>：平台，可以从下方穿过跳上去',
+    lgRamp:'<b>斜坡集装箱</b>：顺坡骑上，再起跳够高处',
+    lgCrab:'<b>螃蟹 · 木箱 · 系缆桩</b>：跳过去',
+    lgGull:'<b>海鸥</b>：从它下面骑过，别在这时起跳',
+    lgBlock:'<b>木台</b>：带黑黄条纹的一面是硬的，要跳上去',
+    lgPit:'<b>码头缺口</b>：掉下去就是海',
+    note:'每一段码头出现在屏幕之前，都会用和游戏完全相同的物理规则把所有起跳时机模拟一遍：起点必须有一条留出反应时间的活路，而且不管你在什么时机跳上吊板、斜坡或集装箱，上去之后也一定还有路可下。看得见的范围里，不会出现无路可走、被迫撞上的死局。',
+    best:'最佳', start:'按 空格 或 点一下画面 出发', startSub:'跳上吊板 · 冲上斜坡 · 捡金币',
+    crashed:'撞上了！', stats:(m, c, sc) => `${m} 米 · ${c} 金币 · 得分 ${sc}`,
+    again:'按 空格 / 点击 再骑一次', againBest:'新纪录！按 空格 / 点击 再骑一次',
+    why:{ crab:'撞上螃蟹了！', crate:'撞上木箱了！', tall:'撞上木箱堆了！', bollard:'撞上系缆桩了！', gull:'和海鸥撞了个满怀！', wall:'撞上了木台的侧面！', water:'扑通——掉进海里了！' },
+  },
+  en: {
+    title:'Pelican Pier Dash', h1:'Pelican <em>Pier</em> Dash',
+    tag:'Pedal a pelican down the pier: hop onto hanging planks, ride up ramps, grab coins. Hit a crab or a crate, or drop into the sea, and the run is over.',
+    verTitle:'Version', aria:'Pelican Pier Dash game. Press Space or tap to jump.',
+    howTitle:'How to play',
+    k1:'<kbd>SPACE</kbd><kbd>↑</kbd><kbd>W</kbd> or tap the screen — jump',
+    k2:'A press just before landing still counts, and you can still jump for a moment after rolling off an edge.',
+    k3:'When you crash, whatever you hit is circled with a pink dashed line.',
+    k4:'After a crash, press <kbd>SPACE</kbd> or tap to ride again.',
+    k5:'You speed up the farther you go. Score = distance (m) + coins × 10.',
+    legendTitle:'What’s on the pier',
+    lgCoin:'<b>Coin</b>: collected on touch, +10 points',
+    lgPlank:'<b>Hanging plank</b>: a platform you can jump up through from below',
+    lgRamp:'<b>Ramp &amp; container</b>: ride up the slope, then jump for higher planks',
+    lgCrab:'<b>Crab · crate · bollard</b>: jump over them',
+    lgGull:'<b>Seagull</b>: ride under it — don’t jump there',
+    lgBlock:'<b>Wooden deck</b>: the striped side is solid, so jump onto it',
+    lgPit:'<b>Gap in the pier</b>: fall in and it’s the sea',
+    note:'Before each stretch of pier scrolls into view, it is played through with the game’s own physics at every possible jump timing. The start must have a way through with time to react, and however you get onto a plank, ramp or container, there is always a way back down. Within what you can see, there is never a dead end that forces a crash.',
+    best:'BEST', start:'Press Space or tap to start', startSub:'Hop planks · ride ramps · grab coins',
+    crashed:'Crashed!', stats:(m, c, sc) => `${m} m · ${c} coins · score ${sc}`,
+    again:'Press Space / tap to ride again', againBest:'New best! Press Space / tap to ride again',
+    why:{ crab:'Ran into a crab!', crate:'Hit a crate!', tall:'Hit a stack of crates!', bollard:'Hit a bollard!', gull:'Crashed into a seagull!', wall:'Hit the side of a wooden deck!', water:'Splash — into the sea!' },
+  },
+};
+let lang = 'zh';
+const TX = () => I18N[lang];
+function setLang(l, remember){
+  lang = I18N[l] ? l : 'zh';
+  const d = TX();
+  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+  document.title = d.title;
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = d[el.dataset.i18n]; });
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => el.setAttribute('aria-label', d[el.dataset.i18nAria]));
+  document.querySelectorAll('[data-i18n-title]').forEach(el => el.setAttribute('title', d[el.dataset.i18nTitle]));
+  document.querySelectorAll('.langs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
+  if (remember){ try { localStorage.setItem('pelican-lang', lang); } catch(e){} }
+}
+document.querySelectorAll('.langs button').forEach(b => b.addEventListener('click', () => {
+  setLang(b.dataset.lang, true);
+  b.blur(); cv.focus({ preventScroll:true });   // so Space goes to the game, not the button
+}));
+(() => {
+  let l = null;
+  const h = location.hash.replace('#', '');
+  if (I18N[h]) l = h;
+  if (!l){ try { l = localStorage.getItem('pelican-lang'); } catch(e){} }
+  if (!I18N[l]) l = /^zh/i.test(navigator.language || '') ? 'zh' : 'en';
+  setLang(l, false);
+})();
 
 function render(alpha){
   ctx.setTransform(scale, 0, 0, scale, 0, 0);
@@ -742,13 +833,13 @@ function render(alpha){
   drawForeWater(ctx, cam, t);
   drawHUD(ctx);
   if (state === 'ready') panel(ctx, [
-    { t:'按 空格 或 点一下画面 出发', f:'26px "ZCOOL KuaiLe", "PingFang SC", sans-serif' },
-    { t:'跳上吊板 · 冲上斜坡 · 捡金币', f:'18px "ZCOOL KuaiLe", "PingFang SC", sans-serif', c:'#43545F' },
+    { t:TX().start, f:'26px "ZCOOL KuaiLe", "PingFang SC", sans-serif' },
+    { t:TX().startSub, f:'18px "ZCOOL KuaiLe", "PingFang SC", sans-serif', c:'#43545F' },
   ]);
   if (state === 'dead') panel(ctx, [
-    { t:WHY[death.why] || '撞上了！', f:'28px "ZCOOL KuaiLe", "PingFang SC", sans-serif', c:PINK },
-    { t:`${Math.floor(P.x / 30)} 米 · ${coins} 金币 · 得分 ${score()}`, f:'19px "ZCOOL KuaiLe", "PingFang SC", sans-serif' },
-    { t:newBest ? '新纪录！按 空格 / 点击 再骑一次' : '按 空格 / 点击 再骑一次', f:'17px "ZCOOL KuaiLe", "PingFang SC", sans-serif', c:'#43545F' },
+    { t:TX().why[death.why] || TX().crashed, f:'28px "ZCOOL KuaiLe", "PingFang SC", sans-serif', c:PINK },
+    { t:TX().stats(Math.floor(P.x / 30), coins, score()), f:'19px "ZCOOL KuaiLe", "PingFang SC", sans-serif' },
+    { t:newBest ? TX().againBest : TX().again, f:'17px "ZCOOL KuaiLe", "PingFang SC", sans-serif', c:'#43545F' },
   ]);
 }
 
@@ -791,7 +882,7 @@ document.querySelectorAll('canvas[data-icon]').forEach(el => {
     c.strokeStyle = '#fff'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(17, 27); c.lineTo(27, 27); c.stroke();
   }
 });
-if (document.fonts && document.fonts.load){ document.fonts.load('20px Bungee'); document.fonts.load('20px "ZCOOL KuaiLe"', '鹈鹕'); }
+if (document.fonts && document.fonts.load){ document.fonts.load('20px Bungee'); document.fonts.load('20px "ZCOOL KuaiLe"', '鹈鹕 Pelican'); }
 })();
 </script>
 </body>
