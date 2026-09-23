@@ -56,7 +56,7 @@
     <h1>鹈鹕<em>单车</em>跑酷</h1>
     <div class="intro">
       <p class="tag">骑着单车沿码头一路向前：跳上吊板、冲上斜坡、捡金币。撞上螃蟹、木箱或掉进海里，这一趟就结束了。</p>
-      <span class="ver" id="ver" title="版本号">v1.2 · 2026-09-23</span>
+      <span class="ver" id="ver" title="版本号">v1.3 · 2026-09-23</span>
     </div>
   </header>
 
@@ -601,10 +601,11 @@ function drawBackground(c, cam, t){
   const lc = cam * 0.2;
   for (let i = Math.floor((lc - 100) / 2200); i <= Math.floor((lc + LW + 100) / 2200); i++){
     const x = i * 2200 + 640 - lc, by = hillY(i * 2200 + 640 - lc + hc) + 4;
-    c.fillStyle = '#FFFFFF'; c.strokeStyle = INK; c.lineWidth = 1.6;
-    c.beginPath(); c.moveTo(x - 9, by); c.lineTo(x - 6, by - 58); c.lineTo(x + 6, by - 58); c.lineTo(x + 9, by); c.closePath(); c.fill(); c.stroke();
+    // Background scenery: fills only, no ink outlines, so it stays behind the play area.
+    c.fillStyle = '#FFFFFF';
+    c.beginPath(); c.moveTo(x - 9, by); c.lineTo(x - 6, by - 58); c.lineTo(x + 6, by - 58); c.lineTo(x + 9, by); c.closePath(); c.fill();
     c.fillStyle = PINK; c.fillRect(x - 8, by - 20, 16, 8); c.fillRect(x - 7, by - 42, 14, 8);
-    c.fillStyle = INK; c.fillRect(x - 8, by - 66, 16, 8);
+    c.fillStyle = '#6F8791'; c.fillRect(x - 8, by - 66, 16, 8);
     c.fillStyle = '#FBE7A8'; c.fillRect(x - 5, by - 64, 10, 5);
   }
   // sea
@@ -623,9 +624,9 @@ function drawBackground(c, cam, t){
   const bc = cam * 0.32;
   for (let i = Math.floor((bc - 80) / 1300); i <= Math.floor((bc + LW + 80) / 1300); i++){
     const x = i * 1300 + 300 + ((i * 211) % 400) - bc, y = 250 + ((i * 7) % 3) * 4, bob = Math.sin(t * 0.04 + i) * 1.5;
-    c.fillStyle = '#FFFFFF'; c.strokeStyle = INK; c.lineWidth = 1.4;
-    c.beginPath(); c.moveTo(x, y - 30 + bob); c.lineTo(x, y - 4 + bob); c.lineTo(x + 16, y - 4 + bob); c.closePath(); c.fill(); c.stroke();
-    c.fillStyle = PINK; c.beginPath(); c.moveTo(x - 12, y - 3 + bob); c.lineTo(x + 20, y - 3 + bob); c.lineTo(x + 15, y + 3 + bob); c.lineTo(x - 8, y + 3 + bob); c.closePath(); c.fill(); c.stroke();
+    c.fillStyle = '#FFFFFF';
+    c.beginPath(); c.moveTo(x, y - 30 + bob); c.lineTo(x, y - 4 + bob); c.lineTo(x + 16, y - 4 + bob); c.closePath(); c.fill();
+    c.fillStyle = PINK; c.beginPath(); c.moveTo(x - 12, y - 3 + bob); c.lineTo(x + 20, y - 3 + bob); c.lineTo(x + 15, y + 3 + bob); c.lineTo(x - 8, y + 3 + bob); c.closePath(); c.fill();
   }
 }
 
