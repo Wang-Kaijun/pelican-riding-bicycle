@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=ZCOOL+KuaiLe&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
   *,*::before,*::after{box-sizing:border-box}
   html{-webkit-text-size-adjust:100%}
@@ -48,6 +49,9 @@
   [hidden]{display:none!important}   /* hidden game canvas / help panel must not be re-shown by display:block/grid */
   #game-runner{aspect-ratio:960/420}
   #game-flyer{aspect-ratio:960/480}
+  #game-dash{position:relative;aspect-ratio:960/540;touch-action:none;cursor:pointer;user-select:none;-webkit-user-select:none}
+  #game-dash canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+  #game-dash:focus-visible{outline:3px solid var(--pink);outline-offset:-7px}
   .stage canvas:focus-visible{outline:3px solid var(--pink);outline-offset:-7px}
   /* game switcher */
   .games{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
@@ -75,6 +79,8 @@
                          width:min(100%, calc((100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) * 960 / 420))}
   .stage.fs #game-flyer{width:min(100%, calc((100vh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) * 960 / 480));
                         width:min(100%, calc((100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) * 960 / 480))}
+  .stage.fs #game-dash{width:min(100%, calc((100vh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) * 960 / 540));
+                       width:min(100%, calc((100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) * 960 / 540))}
   .stage.fs .fs-exit{display:inline-flex;align-items:center;gap:6px;position:absolute;z-index:2;
     right:calc(env(safe-area-inset-right,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 12px);
     font:600 13px/1 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:rgba(255,255,255,.88);
@@ -90,6 +96,7 @@
       padding:env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px) env(safe-area-inset-top,0px)}
     html.touch .stage.fs #game-runner{width:min(100%, calc((100vw - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)) * 960 / 420))}
     html.touch .stage.fs #game-flyer{width:min(100%, calc((100vw - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)) * 960 / 480))}
+    html.touch .stage.fs #game-dash{width:min(100%, calc((100vw - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)) * 960 / 540))}
     html.touch .stage.fs .fs-exit{right:12px;bottom:12px}
   }
   .help{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.7fr);gap:16px;align-items:stretch}
@@ -116,7 +123,7 @@
     <div class="intro">
       <p class="tag" id="tag"></p>
       <div class="meta">
-        <span class="ver" data-i18n-title="page.verTitle" title="版本号">v2.2 · 2026-09-24</span>
+        <span class="ver" data-i18n-title="page.verTitle" title="版本号">v3.0 · 2026-09-24</span>
         <div class="langs" role="group" aria-label="语言 / Language">
           <button type="button" data-lang="zh" lang="zh-CN" aria-pressed="true">中文</button>
           <button type="button" data-lang="en" lang="en" aria-pressed="false">English</button>
@@ -128,6 +135,7 @@
   <div class="games" role="group" data-i18n-aria="page.pick" aria-label="选择游戏">
     <button type="button" data-game="runner" aria-pressed="true"><span data-i18n="runner.title">鹈鹕单车跑酷</span><span class="kind" data-i18n="page.runnerKind">跑酷 · 跳平台</span></button>
     <button type="button" data-game="flyer" aria-pressed="false"><span data-i18n="flyer.title">鹈鹕飞车</span><span class="kind" data-i18n="page.flyerKind">飞行 · 点击扇翅膀</span></button>
+    <button type="button" data-game="dash" aria-pressed="false"><span data-i18n="dash.title">鹈鹕码头酷跑 3D</span><span class="kind" data-i18n="page.dashKind">3D · 滑动换道</span></button>
     <button type="button" class="fsbtn" id="fs-on"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M1.5 5.5v-4h4M10.5 1.5h4v4M14.5 10.5v4h-4M5.5 14.5h-4v-4"/></svg><span data-i18n="page.fs">全屏</span></button>
   </div>
 
@@ -135,6 +143,7 @@
    <div class="frame">
     <canvas id="game-runner" tabindex="0" data-i18n-aria="runner.aria"></canvas>
     <canvas id="game-flyer" tabindex="0" data-i18n-aria="flyer.aria" hidden></canvas>
+    <div id="game-dash" tabindex="0" data-i18n-aria="dash.aria" hidden></div>
     <button type="button" class="fs-exit" id="fs-off"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg><span data-i18n="page.fsExit">退出全屏</span></button>
    </div>
   </div>
@@ -187,6 +196,30 @@
     </div>
     <p class="note wide" data-i18n="flyer.note"></p>
   </section>
+  <section class="help" data-game="dash" hidden>
+    <div class="panel">
+      <h2 data-i18n="dash.howTitle"></h2>
+      <div class="keys">
+        <div data-i18n="dash.k1"></div>
+        <div data-i18n="dash.k2"></div>
+        <div data-i18n="dash.k3"></div>
+        <div data-i18n="dash.k4"></div>
+        <div data-i18n="dash.k5"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2 data-i18n="dash.legendTitle"></h2>
+      <ul class="legend">
+        <li><canvas data-icon="crate" width="88" height="68"></canvas><span data-i18n="dash.lgCrate"></span></li>
+        <li><canvas data-icon="stack" width="88" height="68"></canvas><span data-i18n="dash.lgStack"></span></li>
+        <li><canvas data-icon="beam" width="88" height="68"></canvas><span data-i18n="dash.lgBeam"></span></li>
+        <li><canvas data-icon="cont" width="88" height="68"></canvas><span data-i18n="dash.lgCont"></span></li>
+        <li><canvas data-icon="top" width="88" height="68"></canvas><span data-i18n="dash.lgTop"></span></li>
+        <li><canvas data-icon="coin" width="88" height="68"></canvas><span data-i18n="dash.lgCoin"></span></li>
+      </ul>
+    </div>
+    <p class="note wide" data-i18n="dash.note"></p>
+  </section>
 </main>
 
 <script>
@@ -194,7 +227,7 @@
 const PB = { lang:'zh', game:'runner', games:{} };
 const I18N = {
   zh: {
-    page:{ title:'鹈鹕单车小游戏', h1:'鹈鹕<em>单车</em>小游戏', verTitle:'版本号', pick:'选择游戏', runnerKind:'跑酷 · 跳平台', flyerKind:'飞行 · 点击扇翅膀', fs:'全屏', fsExit:'退出全屏' },
+    page:{ title:'鹈鹕单车小游戏', h1:'鹈鹕<em>单车</em>小游戏', verTitle:'版本号', pick:'选择游戏', runnerKind:'跑酷 · 跳平台', flyerKind:'飞行 · 点击扇翅膀', dashKind:'3D · 滑动换道', fs:'全屏', fsExit:'退出全屏' },
     runner: {
     title:'鹈鹕单车跑酷', h1:'鹈鹕<em>单车</em>跑酷',
     tag:'骑着单车沿码头一路向前：跳上吊板、冲上斜坡、捡金币。撞上螃蟹、木箱或掉进海里，这一趟就结束了。',
@@ -241,9 +274,33 @@ const I18N = {
     again:'按 空格 / 点击 再飞一次', againBest:'新纪录！按 空格 / 点击 再飞一次',
     why:{ stack:'撞上集装箱塔了！', hang:'撞上吊着的货箱了！', gull:'和海鸥撞了个满怀！', hook:'被吊钩打中了！', water:'扑通——掉进海里了！' },
     },
+    dash: {
+    title:'鹈鹕码头酷跑 3D', h1:'鹈鹕<em>码头酷跑</em>',
+    tag:'鹈鹕骑车冲过集装箱码头：左右换道、跳过木箱、滑过吊杆，还能顺着斜坡骑上集装箱顶一路狂奔。',
+    verTitle:'版本号', aria:'鹈鹕码头酷跑 3D 游戏画面，左右滑动换道，上滑跳跃，下滑滑行',
+    howTitle:'怎么玩',
+    k1:'<kbd>←</kbd><kbd>→</kbd> 或 左右滑动 —— 换道',
+    k2:'<kbd>↑</kbd><kbd>SPACE</kbd> 或 上滑 / 轻点 —— 跳跃；<kbd>↓</kbd> 或 下滑 —— 滑行（空中按下会快速落地）',
+    k3:'有斜坡的集装箱可以骑上去，在箱顶也能跳、能换到旁边的箱顶或落回地面；侧面撞上集装箱只会被弹回原车道。',
+    k4:'撞上时粉色方块会标出撞到的东西，按 <kbd>SPACE</kbd> 或轻点再跑一次。',
+    k5:'越跑越快，得分 = 距离(米) + 金币 × 10。',
+    legendTitle:'码头上有什么',
+    lgCrate:'<b>木箱</b>：地面和集装箱顶上都有，跳过去',
+    lgStack:'<b>木箱堆</b>：太高跳不过，换道绕开',
+    lgBeam:'<b>吊杆</b>：黄黑条纹的横杆，滑行从下面钻过',
+    lgCont:'<b>集装箱</b>：正面撞上就结束，带斜坡的可以骑上去',
+    lgTop:'<b>箱顶</b>：高处的跑道，跑完会自然落回地面',
+    lgCoin:'<b>金币</b>：碰到就收下，+10 分',
+    note:'每一段码头出现之前，都会用和游戏完全相同的物理规则把所有操作组合模拟一遍：不管你在哪条道上，都一定有路可走；而且不管你在哪里骑上集装箱顶，上去之后也一定下得来、跑得过去。判定时障碍会放大一圈，并假设你每 4 帧才能做一个动作，不需要极限操作。每一段在需要你应对时都已经出现在视野里。',
+    best:'最佳', start:'按 空格 或 轻点画面 出发', startSub:'← → 换道 · ↑ 跳 · ↓ 滑行（手机上用滑动）',
+    crashed:'撞上了！', stats:(m, c, sc) => `${m} 米 · ${c} 金币 · 得分 ${sc}`,
+    again:'按 空格 / 轻点 再跑一次', againBest:'新纪录！按 空格 / 轻点 再跑一次',
+    why:{ crate:'撞上木箱了！', stack:'撞上木箱堆了！', beam:'被吊杆拦住了！', cont:'一头撞上集装箱了！' },
+    no3d:'这台设备没能加载 3D 引擎，请换个浏览器试试。',
+    },
   },
   en: {
-    page:{ title:'Pelican Bike Games', h1:'Pelican <em>Bike</em> Games', verTitle:'Version', pick:'Choose a game', runnerKind:'platform jumper', flyerKind:'tap to flap', fs:'Full screen', fsExit:'Exit full screen' },
+    page:{ title:'Pelican Bike Games', h1:'Pelican <em>Bike</em> Games', verTitle:'Version', pick:'Choose a game', runnerKind:'platform jumper', flyerKind:'tap to flap', dashKind:'3D · swipe lanes', fs:'Full screen', fsExit:'Exit full screen' },
     runner: {
     title:'Pelican Pier Dash', h1:'Pelican <em>Pier</em> Dash',
     tag:'Pedal a pelican down the pier: hop onto planks, ride up ramps, grab coins. Hit a crab or a crate, or fall into the sea, and the run ends.',
@@ -289,6 +346,30 @@ const I18N = {
     crashed:'Crashed!', stats:(n, c, sc) => `${n} passed · ${c} coins · score ${sc}`,
     again:'Press Space / tap to fly again', againBest:'New best! Press Space / tap to fly again',
     why:{ stack:'Hit a container tower!', hang:'Hit the hanging cargo!', gull:'Crashed into a seagull!', hook:'Knocked by a crane hook!', water:'Splash — into the sea!' },
+    },
+    dash: {
+    title:'Pelican Dock Dash 3D', h1:'Pelican <em>Dock Dash</em>',
+    tag:'The pelican races its bike through the container docks: switch lanes, hop crates, slide under barriers, and ride ramps up onto the containers.',
+    verTitle:'Version', aria:'Pelican Dock Dash 3D game. Swipe left or right to change lanes, up to jump, down to slide.',
+    howTitle:'How to play',
+    k1:'<kbd>←</kbd><kbd>→</kbd> or swipe left/right — change lanes',
+    k2:'<kbd>↑</kbd><kbd>SPACE</kbd>, swipe up or tap — jump; <kbd>↓</kbd> or swipe down — slide (drops you fast in mid-air)',
+    k3:'Containers with a ramp can be ridden up. On top you can jump, hop to a neighbouring roof or drop back down. Bumping a container’s side just bounces you back.',
+    k4:'When you crash, what you hit glows pink. Press <kbd>SPACE</kbd> or tap to run again.',
+    k5:'You speed up as you go. Score = distance (m) + coins × 10.',
+    legendTitle:'What’s on the dock',
+    lgCrate:'<b>Crate</b>: on the ground and on container roofs — jump it',
+    lgStack:'<b>Crate stack</b>: too tall to jump, change lanes',
+    lgBeam:'<b>Barrier</b>: striped bar — slide under it',
+    lgCont:'<b>Container</b>: hitting the front ends the run; ones with a ramp can be ridden up',
+    lgTop:'<b>Roofs</b>: a high road that drops you back down at the end',
+    lgCoin:'<b>Coin</b>: collected on touch, +10 points',
+    note:'Before each stretch of dock appears, every combination of moves is played through with the game’s own physics: whichever lane you are in, there is a way through, and wherever you get onto a container roof, there is a way back down and onward. The check pads every obstacle and allows only one move every 4 frames, so no frame-perfect play is needed. Each stretch is in view by the time you need to react.',
+    best:'BEST', start:'Press Space or tap to start', startSub:'← → lanes · ↑ jump · ↓ slide (swipe on phones)',
+    crashed:'Crashed!', stats:(m, c, sc) => `${m} m · ${c} coins · score ${sc}`,
+    again:'Press Space / tap to run again', againBest:'New best! Press Space / tap to run again',
+    why:{ crate:'Hit a crate!', stack:'Hit a crate stack!', beam:'Stopped by a barrier!', cont:'Ran into a container!' },
+    no3d:'This device could not load the 3D engine. Try another browser.',
     },
   },
 };
@@ -1617,8 +1698,666 @@ if (document.fonts && document.fonts.load){ document.fonts.load('20px Bungee'); 
 })();
 </script>
 <script>
+/* ======== Game 3: 鹈鹕码头酷跑 3D / Pelican Dock Dash 3D ======== */
 (() => {
-  const GAMES = ['runner', 'flyer'];
+// @logic-start
+/* World units are metres; physics runs in fixed 1/60 s frames. s = distance along the pier,
+   x = sideways (lanes at -2.2 / 0 / 2.2), y = up. The same step() drives the game and the checker. */
+const PH = {
+  LANE:2.2, LAT:0.30,                 // lane change: 0.30 m/frame → ~7 frames per lane
+  G:28 / 3600, JV:0.15,               // jump: apex ≈ 1.45 m, ≈ 0.64 s in the air
+  SLIDE:36, FASTFALL:-0.3,            // slide lasts 0.6 s; sliding in the air drops you fast
+  HW:0.35, HD:0.35, HT:1.7, HS:0.7,   // player half-width / half-depth / height standing / sliding
+  STEP:0.4, RSTEP:1.0,                // how far up the feet snap onto a surface (ramps are lenient)
+  V0:0.2, V1:0.3, ACC:0.1 / 6000,     // 12 m/s → 18 m/s over ~100 s
+  CH:2.6, RAMP:5.5,                   // container height, ramp length
+  DEC:4,                              // checker: one action every 4 frames at most
+  PS:0.3, PY:0.12, PX:0.05,           // checker: extra padding on every obstacle
+  FREE:20, LAND:10, TAIL:8,           // chunk layout (see genChunk)
+};
+const speedAt = t => Math.min(PH.V1, PH.V0 + t * PH.ACC);
+const SS = [0];
+function Sat(t){ while (SS.length <= t){ const n = SS.length; SS.push(SS[n - 1] + speedAt(n - 1)); } return SS[t]; }
+function frameAtS(s){
+  while (SS[SS.length - 1] < s) Sat(SS.length);
+  let lo = 0, hi = SS.length - 1;
+  while (lo < hi){ const m = (lo + hi) >> 1; if (SS[m] >= s) hi = m; else lo = m + 1; }
+  return lo;
+}
+const xOverlap = (x, a0, a1, px) => x - PH.HW < a1 + px && x + PH.HW > a0 - px;
+const rampH = (c, s) => c.h * Math.min(1, Math.max(0, (s - (c.s0 - PH.RAMP)) / PH.RAMP));
+// Highest surface under the feet that the rider can step onto from height yref.
+function support(W, x, s, yref){
+  let best = 0;
+  for (const c of W.cont){
+    if (c.s1 < s - 2 || c.s0 - PH.RAMP > s + 2) continue;
+    if (!xOverlap(x, c.x0, c.x1, 0)) continue;
+    if (s + PH.HD > c.s0 && s - PH.HD < c.s1 && c.h <= yref + PH.STEP && c.h > best) best = c.h;
+    if (c.ramp && s + PH.HD > c.s0 - PH.RAMP && s - PH.HD < c.s0){
+      const h = rampH(c, s + PH.HD);
+      if (h <= yref + PH.RSTEP && h > best) best = h;
+    }
+  }
+  return best;
+}
+// Is the rider's body inside a container (or the side of its ramp)? `ramps` = count ramps as solid.
+function solidAt(W, x, s, y, pad, ramps){
+  for (const c of W.cont){
+    if (c.s1 < s - 2 || c.s0 - PH.RAMP > s + 2) continue;
+    if (!xOverlap(x, c.x0, c.x1, 0)) continue;
+    if (s + PH.HD > c.s0 - pad && s - PH.HD < c.s1 && y < c.h - PH.STEP) return c;
+    if (ramps && c.ramp && s + PH.HD > c.s0 - PH.RAMP && s - PH.HD < c.s0 && y < rampH(c, s + PH.HD) - PH.RSTEP) return c;
+  }
+  return null;
+}
+// inp: 0 none, 1 left, 2 right, 3 jump, 4 slide. pad > 0 only in the checker.
+function step(p, inp, W, t, pad){
+  let { s, x, y, vy, lane, from, gr, sl } = p;
+  if (inp === 1 && lane > -1){ from = lane; lane--; }
+  else if (inp === 2 && lane < 1){ from = lane; lane++; }
+  else if (inp === 3 && gr){ vy = PH.JV; gr = false; sl = 0; }
+  else if (inp === 4){ sl = PH.SLIDE + 1; if (!gr) vy = Math.min(vy, PH.FASTFALL); }
+  if (sl > 0) sl--;
+  const px = pad ? PH.PX : 0, ps = pad ? PH.PS : 0, py = pad ? PH.PY : 0;
+  let nx = x + Math.max(-PH.LAT, Math.min(PH.LAT, lane * PH.LANE - x));
+  let bump = false;
+  // Sliding sideways into a container just bounces you back to the lane you came from.
+  if (nx !== x && solidAt(W, nx, s, y, ps, true) && !solidAt(W, x, s, y, ps, true)){ nx = x; lane = from; bump = true; }
+  const ns = s + speedAt(t);
+  const hit = solidAt(W, nx, ns, y, ps, false);
+  if (hit) return { dead:true, why:'cont', ob:hit, s:ns, x:nx, y };
+  let ny, nvy = vy;
+  if (gr){
+    const sup = support(W, nx, ns, y);
+    if (sup >= y - 0.02) ny = sup; else { gr = false; nvy = 0; ny = y; }
+  } else {
+    nvy -= PH.G; ny = y + nvy;
+    const sup = support(W, nx, ns, Math.max(y, ny));
+    if (ny <= sup){ ny = sup; nvy = 0; gr = true; }
+  }
+  const h = sl > 0 ? PH.HS : PH.HT;
+  for (const b of W.box){
+    if (b.s1 + ps < ns - PH.HD || b.s0 - ps > ns + PH.HD) continue;
+    if (!xOverlap(nx, b.x0, b.x1, px)) continue;
+    if (ny < b.y1 + py && ny + h > b.y0 - (b.kind === 'beam' ? py : 0)) return { dead:true, why:b.kind, ob:b, s:ns, x:nx, y:ny };
+  }
+  return { s:ns, x:nx, y:ny, vy:nvy, lane, from, gr, sl, bump };
+}
+
+/* ---- level checker ----
+   Breadth-first over everything the rider can do, one action per DEC frames, with padded
+   obstacles. Every state carries a bit mask of the "origins" that can reach it: the three
+   lanes at the start of the stretch, plus every place where the rider could land on a
+   container roof. The stretch is accepted only if, at its end, every origin bit survives —
+   i.e. you can get through from any lane, and climbing onto a container never traps you. */
+const onTop = p => p.gr && p.y >= PH.CH - 0.01;
+function* checkChunk(W, sStart, sEnd){
+  const T0 = frameAtS(sStart), T1 = frameAtS(sEnd);
+  let cur = new Map(), bits = 0, need = 0;
+  for (const lane of [-1, 0, 1]){
+    const bit = 1 << bits++; need |= bit;
+    cur.set('L' + lane, { p:{ s:Sat(T0), x:lane * PH.LANE, y:0, vy:0, lane, from:lane, gr:true, sl:0 }, m:bit });
+  }
+  const commits = new Map();
+  let work = 0;
+  for (let t = T0; t < T1; t += PH.DEC){
+    const nxt = new Map();
+    for (const { p, m } of cur.values()){
+      for (let inp = 0; inp < 5; inp++){
+        if (inp === 1 && p.lane === -1) continue;
+        if (inp === 2 && p.lane === 1) continue;
+        if (inp === 3 && !p.gr) continue;
+        let q = p, top0 = onTop(p), commitKey = null;
+        for (let f = 0; f < PH.DEC && !q.dead; f++){
+          q = step(q, f === 0 ? inp : 0, W, t + f, true);
+          if (!q.dead && !top0 && onTop(q)) commitKey = Math.round(q.x / PH.LANE) + ':' + Math.floor(q.s / 3);
+          if (!q.dead) top0 = onTop(q);
+        }
+        if (q.dead) continue;
+        let mm = m;
+        if (commitKey !== null){
+          let b = commits.get(commitKey);
+          if (b === undefined && bits < 30){ b = 1 << bits++; commits.set(commitKey, b); need |= b; }
+          if (b !== undefined) mm |= b;
+        }
+        const key = q.lane + ',' + q.from + ',' + Math.round(q.x * 20) + ',' + Math.round(q.y * 20) + ',' + Math.round(q.vy * 200) + ',' + (q.gr ? 1 : 0) + ',' + (q.sl >> 2);
+        const old = nxt.get(key);
+        if (old) old.m |= mm; else nxt.set(key, { p:q, m:mm });
+        work++;
+      }
+    }
+    cur = nxt;
+    if (cur.size === 0) return false;
+    if (work > 1500){ work = 0; yield; }
+  }
+  let got = 0;
+  for (const { m } of cur.values()) got |= m;
+  return (got & need) === need;
+}
+
+/* ---- level generator ---- */
+let RNG = Math.random;
+const R = (a, b) => a + (b - a) * RNG();
+const RI = (a, b) => Math.floor(R(a, b + 1));
+const pickLanes = n => { const l = [-1, 0, 1]; for (let i = 2; i > 0; i--){ const j = RI(0, i); [l[i], l[j]] = [l[j], l[i]]; } return l.slice(0, n); };
+const CONT_COLORS = ['#3F77A8', '#E3A93B', '#2F8F9D', '#C9553F'];
+function newWorld(){ return { cont:[], box:[], coins:[], lastEnd:0, n:0, gen:null }; }
+const X = lane => lane * PH.LANE;
+function crate(C, lane, s, onCont){ const y0 = onCont ? PH.CH : 0; C.box.push({ kind:'crate', lane, x0:X(lane) - 0.8, x1:X(lane) + 0.8, s0:s, s1:s + 1, y0, y1:y0 + 1 }); }
+function stack(C, lane, s){ C.box.push({ kind:'stack', lane, x0:X(lane) - 0.8, x1:X(lane) + 0.8, s0:s, s1:s + 1, y0:0, y1:2.4 }); }
+function beam(C, lane, s){ C.box.push({ kind:'beam', lane, x0:X(lane) - 1.0, x1:X(lane) + 1.0, s0:s, s1:s + 0.3, y0:1.0, y1:2.2 }); }
+function cont(C, lane, s0, L, ramp){ const c = { lane, x0:X(lane) - 1.0, x1:X(lane) + 1.0, s0, s1:s0 + L, h:PH.CH, ramp, color:CONT_COLORS[RI(0, 3)] }; C.cont.push(c); return c; }
+function coinLine(C, lane, s0, s1, y){ for (let s = s0; s <= s1; s += 2.6) C.coins.push({ lane, x:X(lane), s, y }); }
+const T = {
+  crates(C, s, d){
+    const k = spacing(s);
+    const rows = 1 + (d > 0.25 && RNG() < 0.6 ? 1 : 0) + (d > 0.6 && RNG() < 0.4 ? 1 : 0);
+    for (let r = 0; r < rows; r++){
+      const blocked = pickLanes(RNG() < 0.35 + 0.4 * d ? 2 : 1);
+      for (const l of blocked) crate(C, l, s, false);
+      const free = [-1, 0, 1].filter(l => !blocked.includes(l));
+      if (RNG() < 0.5) coinLine(C, free[RI(0, free.length - 1)], s - 5, s + 5, 0.9);
+      else C.coins.push({ lane:blocked[0], x:X(blocked[0]), s:s + 0.5, y:2.3 });
+      s += (R(11, 16) - 3 * d) * k;
+    }
+    return s;
+  },
+  beams(C, s, d){
+    const n = d > 0.2 && RNG() < 0.45 ? 3 : RI(1, 2);
+    const lanes = pickLanes(n);
+    for (const l of lanes) beam(C, l, s);
+    coinLine(C, lanes[0], s - 3, s + 3, 0.45);
+    return s + 1;
+  },
+  stacks(C, s, d){
+    let free = RI(-1, 1);
+    for (const l of [-1, 0, 1]) if (l !== free) stack(C, l, s);
+    coinLine(C, free, s - 4, s + 4, 0.9);
+    if (d > 0.3 && RNG() < 0.6){
+      s += R(13, 18) * spacing(s);
+      const f2 = [-1, 0, 1].filter(l => l !== free)[RI(0, 1)];
+      for (const l of [-1, 0, 1]) if (l !== f2) stack(C, l, s);
+      free = f2;
+    }
+    return s + 1;
+  },
+  train(C, s, d){
+    const n = d > 0.12 && RNG() < 0.55 ? 2 : 1;
+    const lanes = pickLanes(n);
+    let end = s;
+    lanes.forEach((l, i) => {
+      const s0 = s + PH.RAMP + R(0, 6) + i * R(0, 5), L = R(16, 30);
+      const c = cont(C, l, s0, L, RNG() < 0.75);
+      for (let q = s0 + R(7, 10); q < c.s1 - 5; q += R(9, 13) * spacing(q)) if (RNG() < 0.35 + 0.4 * d) crate(C, l, q, true);
+      if (c.ramp) coinLine(C, l, s0 + 1.5, Math.min(c.s1 - 2, s0 + 12), PH.CH + 0.9);
+      end = Math.max(end, c.s1);
+    });
+    const free = [-1, 0, 1].filter(l => !lanes.includes(l));
+    if (free.length && d > 0.15 && RNG() < 0.5){
+      const q = s + R(10, 20);
+      if (RNG() < 0.5) crate(C, free[0], q, false); else beam(C, free[0], q);
+    }
+    return end;
+  },
+  mixed(C, s, d){
+    const [a, b, c] = pickLanes(3);
+    const k = cont(C, a, s + PH.RAMP, R(18, 26), true);
+    const m = s + PH.RAMP + R(4, 10);
+    crate(C, b, m, false);
+    beam(C, c, m + R(-2, 2));
+    coinLine(C, a, k.s0 + 1.5, k.s0 + 10, PH.CH + 0.9);
+    return Math.max(k.s1, m + 2);
+  },
+};
+// Gaps between consecutive obstacles grow with speed, so the time you get to react stays the same.
+function spacing(s){ return speedAt(frameAtS(s)) / PH.V0; }
+const WEIGHTS = [['crates', 3, 0], ['beams', 1.6, 0.05], ['stacks', 1.6, 0.08], ['train', 3, 0], ['mixed', 1.6, 0.18]];
+function pickT(d, n){
+  if (n === 0) return 'crates';
+  if (n === 1) return 'train';
+  const opts = WEIGHTS.filter(w => d >= w[2]);
+  let r = RNG() * opts.reduce((a, w) => a + w[1], 0);
+  for (const w of opts){ r -= w[1]; if (r <= 0) return w[0]; }
+  return 'crates';
+}
+// A container without a ramp must leave an escape lane next to it in the run-up.
+function fixCorridors(C){
+  for (const c of C.cont){
+    if (c.ramp) continue;
+    const ok = [c.lane - 1, c.lane + 1].some(l => l >= -1 && l <= 1 &&
+      !C.cont.some(o => o !== c && o.lane === l && o.s1 > c.s0 - 18 && o.s0 - (o.ramp ? PH.RAMP : 0) < c.s0 + 2));
+    if (!ok) c.ramp = true;
+  }
+}
+/* Chunk layout: [FREE m with nothing] [content] [TAIL m with nothing].
+   The checker starts LAND m into the free run — by then any jump or slide from the previous
+   chunk has finished — so the content is guaranteed passable from whichever lane you are in. */
+function* genChunk(world){
+  const sA = world.lastEnd, d = Math.min(1, sA / 3000);
+  for (let tries = 0; tries < 20; tries++){
+    const C = { cont:[], box:[], coins:[] };
+    const kind = pickT(d, world.n);
+    const cEnd = T[kind](C, sA + (world.n === 0 ? 40 : PH.FREE), d);
+    fixCorridors(C);
+    const end = Math.ceil(Math.max(cEnd, ...C.box.map(b => b.s1), ...C.cont.map(c => c.s1)) + PH.TAIL);
+    const ok = yield* checkChunk(C, sA + PH.LAND, end);
+    if (ok){ commit(world, C, end, kind); return tries; }
+  }
+  const C = { cont:[], box:[], coins:[] };
+  crate(C, 0, sA + PH.FREE, false);
+  commit(world, C, sA + PH.FREE + 1 + PH.TAIL, 'fallback');
+  return -1;
+}
+function commit(world, C, end, kind){
+  world.cont.push(...C.cont); world.box.push(...C.box); world.coins.push(...C.coins);
+  world.lastEnd = end; world.n++;
+}
+function runGen(world, budgetMs, until){
+  const now = () => (typeof performance !== 'undefined' ? performance : Date).now();
+  const t0 = now();
+  while (world.lastEnd < until){
+    if (!world.gen) world.gen = genChunk(world);
+    if (world.gen.next().done) world.gen = null;
+    if (budgetMs >= 0 && now() - t0 > budgetMs) break;
+  }
+}
+// @logic-end
+
+/* ---------------- game state & input ---------------- */
+const INK = '#1E2A38', PINK = '#EE5A7E', GOLD = '#F5C132', TEAL = '#2F8F9D';
+const LW = 960, LH = 540;
+const cv = document.getElementById('game-dash');
+function load(){ try { return +localStorage.getItem('pelican-dash-best') || 0; } catch(e){ return 0; } }
+function save(v){ try { localStorage.setItem('pelican-dash-best', String(v)); } catch(e){} }
+
+let world, P, prevP, t = 0, state = 'ready', coins = 0, best = load(), queue = [], deadAt = 0, death = null, tick = 0, newBest = false, bumpT = 0;
+function reset(){
+  world = newWorld();
+  runGen(world, -1, 140);
+  P = { s:0, x:0, y:0, vy:0, lane:0, from:0, gr:true, sl:0 }; prevP = P;
+  t = 0; coins = 0; queue = []; death = null; newBest = false; bumpT = 0;
+  if (scene3d) scene3d.resetWorld();
+}
+const meters = () => Math.floor(P.s);
+const score = () => meters() + coins * 10;
+
+function stepGame(){
+  tick++;
+  if (state !== 'run') return;
+  const inp = queue.length ? queue.shift() : 0;
+  const n = step(P, inp, world, t, false);
+  t++;
+  prevP = P;
+  if (n.dead){ die(n); return; }
+  if (n.bump) bumpT = 12;
+  P = n;
+  if (bumpT > 0) bumpT--;
+  const h = P.sl > 0 ? PH.HS : PH.HT;
+  for (const c of world.coins){
+    if (c.taken || Math.abs(c.s - P.s) > 0.9 || Math.abs(c.x - P.x) > 0.9) continue;
+    if (c.y > P.y - 0.3 && c.y < P.y + h + 0.3){ c.taken = true; coins++; }
+  }
+  if (world.lastEnd < P.s + 110) runGen(world, -1, P.s + 110);
+  if (tick % 300 === 0){
+    const cut = P.s - 30;
+    const keep = o => (o.s1 !== undefined ? o.s1 : o.s) > cut || (o.mesh && scene3d && scene3d.drop(o), false);
+    world.cont = world.cont.filter(keep); world.box = world.box.filter(keep); world.coins = world.coins.filter(keep);
+  }
+}
+function die(n){
+  state = 'dead'; deadAt = performance.now(); death = n; death.t = tick;
+  P = Object.assign({}, P, { s:n.s - 0.2, x:n.x, y:n.y }); prevP = P;
+  const sc = score();
+  if (sc > best){ best = sc; newBest = true; save(best); }
+}
+function press(){
+  if (state === 'ready'){ state = 'run'; return; }
+  if (state === 'run'){ act(3); return; }
+  if (state === 'dead' && performance.now() - deadAt > 450){ reset(); state = 'run'; }
+}
+function act(a){
+  if (state === 'ready'){ state = 'run'; if (a !== 3) queue.push(a); return; }
+  if (state !== 'run') return;
+  if (queue.length < 3) queue.push(a);
+}
+window.addEventListener('keydown', e => {
+  if (PB.game !== 'dash') return;
+  const k = e.code;
+  if (k === 'ArrowLeft' || k === 'KeyA'){ e.preventDefault(); if (!e.repeat) act(1); }
+  else if (k === 'ArrowRight' || k === 'KeyD'){ e.preventDefault(); if (!e.repeat) act(2); }
+  else if (k === 'ArrowUp' || k === 'KeyW' || k === 'Space'){ e.preventDefault(); if (!e.repeat){ if (state === 'run') act(3); else press(); } }
+  else if (k === 'ArrowDown' || k === 'KeyS'){ e.preventDefault(); if (!e.repeat) act(4); }
+  else if (k === 'Enter' && state !== 'run') press();
+});
+// Swipes: act as soon as the finger has moved far enough; a short touch without movement is a tap.
+let sw = null;
+const mapDelta = (dx, dy) => (typeof PB !== 'undefined' && PB.mapDelta) ? PB.mapDelta(dx, dy) : [dx, dy];
+cv.addEventListener('pointerdown', e => { e.preventDefault(); cv.focus({ preventScroll:true }); sw = { x:e.clientX, y:e.clientY, used:false, id:e.pointerId }; });
+cv.addEventListener('pointermove', e => {
+  if (!sw || sw.used || e.pointerId !== sw.id) return;
+  const [dx, dy] = mapDelta(e.clientX - sw.x, e.clientY - sw.y);
+  if (Math.hypot(dx, dy) < 26) return;
+  sw.used = true;
+  if (Math.abs(dx) > Math.abs(dy)) act(dx > 0 ? 2 : 1); else act(dy > 0 ? 4 : 3);
+});
+const endSwipe = e => { if (sw && !sw.used && e.pointerId === sw.id) press(); sw = null; };
+cv.addEventListener('pointerup', endSwipe);
+cv.addEventListener('pointercancel', () => { sw = null; });
+
+/* ---------------- 2D helpers (HUD, legend icons) ---------------- */
+function rrect(c, x, y, w, h, r){ c.beginPath(); c.roundRect ? c.roundRect(x, y, w, h, r) : c.rect(x, y, w, h); }
+function drawCoin(c, x, y, tt){
+  const k = Math.abs(Math.cos(tt * 0.08 + x * 0.01));
+  c.save(); c.translate(x, y); c.scale(Math.max(0.2, k), 1);
+  c.fillStyle = GOLD; c.strokeStyle = INK; c.lineWidth = 2.2;
+  c.beginPath(); c.arc(0, 0, 9, 0, 7); c.fill(); c.stroke();
+  c.strokeStyle = '#C9921A'; c.lineWidth = 1.6; c.beginPath(); c.arc(0, 0, 5.5, 0, 7); c.stroke();
+  c.restore();
+}
+function panel(c, lines){
+  let w = 460;
+  for (const l of lines){ c.font = l.f; w = Math.max(w, c.measureText(l.t).width + 64); }
+  w = Math.min(w, LW - 40);
+  const h = 30 + lines.length * 34, x = (LW - w) / 2, y = 110;
+  c.fillStyle = INK; rrect(c, x + 6, y + 6, w, h, 14); c.fill();
+  c.fillStyle = '#F4FAF8'; c.strokeStyle = INK; c.lineWidth = 3; rrect(c, x, y, w, h, 14); c.fill(); c.stroke();
+  c.textAlign = 'center'; c.textBaseline = 'middle';
+  lines.forEach((l, i) => { c.font = l.f; c.fillStyle = l.c || INK; c.fillText(l.t, LW / 2, y + 32 + i * 34); });
+}
+
+/* ---------------- 3D scene ---------------- */
+const glCanvas = document.createElement('canvas'), hud = document.createElement('canvas');
+cv.appendChild(glCanvas); cv.appendChild(hud);
+const hx = hud.getContext('2d');
+let scene3d = null;
+function build3D(){
+  if (typeof THREE === 'undefined') return null;
+  const renderer = new THREE.WebGLRenderer({ canvas:glCanvas, antialias:true });
+  const scene = new THREE.Scene();
+  const SKY = new THREE.Color('#BFE3E6');
+  scene.background = SKY;
+  scene.fog = new THREE.Fog('#CFE8E6', 50, 118);
+  const camera = new THREE.PerspectiveCamera(62, LW / LH, 0.1, 260);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x7fa9a6, 0.8));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.7); sun.position.set(-6, 12, 4); scene.add(sun);
+  const grad = new THREE.DataTexture(new Uint8Array([110, 185, 255]), 3, 1, THREE.LuminanceFormat);
+  grad.minFilter = grad.magFilter = THREE.NearestFilter; grad.needsUpdate = true;
+  const mats = new Map();
+  const mat = (color, map) => { const k = color + (map ? map.uuid : ''); if (!mats.has(k)) mats.set(k, new THREE.MeshToonMaterial({ color, gradientMap:grad, map:map || null })); return mats.get(k); };
+  const inkMat = new THREE.MeshBasicMaterial({ color:INK, side:THREE.BackSide });
+  const geos = new Map();
+  const boxGeo = (w, h, d) => { const k = w.toFixed(2) + ',' + h.toFixed(2) + ',' + d.toFixed(2); if (!geos.has(k)) geos.set(k, new THREE.BoxGeometry(w, h, d)); return geos.get(k); };
+  // ink outline: a slightly bigger back-facing box
+  function outlinedBox(w, h, d, material, o = 0.07){
+    const g = new THREE.Group();
+    g.add(new THREE.Mesh(boxGeo(w, h, d), material));
+    g.add(new THREE.Mesh(boxGeo(w + o, h + o, d + o), inkMat));
+    return g;
+  }
+  function canvasTex(w, h, draw, rx = 1, ry = 1){
+    const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h);
+    const tx = new THREE.CanvasTexture(c); tx.wrapS = tx.wrapT = THREE.RepeatWrapping; tx.repeat.set(rx, ry); tx.anisotropy = 4; return tx;
+  }
+  const ribTex = canvasTex(64, 64, (c, w, h) => { c.fillStyle = '#fff'; c.fillRect(0, 0, w, h); c.fillStyle = 'rgba(0,0,0,.16)'; for (let i = 4; i < w; i += 16) c.fillRect(i, 0, 5, h); c.fillStyle = 'rgba(255,255,255,.5)'; c.fillRect(0, 0, w, 3); });
+  const crateTex = canvasTex(64, 64, (c, w, h) => { c.fillStyle = '#fff'; c.fillRect(0, 0, w, h); c.strokeStyle = 'rgba(30,42,56,.55)'; c.lineWidth = 4; c.beginPath(); c.moveTo(6, 6); c.lineTo(58, 58); c.moveTo(58, 6); c.lineTo(6, 58); c.stroke(); c.strokeRect(3, 3, 58, 58); });
+  const stripeTex = canvasTex(64, 64, (c, w, h) => { c.fillStyle = '#F5C132'; c.fillRect(0, 0, w, h); c.fillStyle = INK; for (let i = -64; i < 128; i += 22){ c.beginPath(); c.moveTo(i, 0); c.lineTo(i + 11, 0); c.lineTo(i + 11 - 64, 64); c.lineTo(i - 64, 64); c.fill(); } }, 2, 1);
+  const deckTex = canvasTex(256, 256, (c, w, h) => {
+    c.fillStyle = '#9E6A42'; c.fillRect(0, 0, w, h);
+    c.fillStyle = 'rgba(30,42,56,.28)'; for (let y = 0; y < h; y += 32) c.fillRect(0, y, w, 3);
+    c.fillStyle = 'rgba(255,255,255,.08)'; for (let y = 10; y < h; y += 32) c.fillRect(0, y, w, 6);
+    c.fillStyle = 'rgba(30,42,56,.45)'; for (const x of [w * 0.335, w * 0.665]) c.fillRect(x - 2, 0, 4, h);
+  }, 1, 2);
+  const waterTex = canvasTex(128, 128, (c, w, h) => { c.fillStyle = '#3E9AA6'; c.fillRect(0, 0, w, h); c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 3; for (let i = 0; i < 6; i++){ const y = 10 + i * 21, x = (i * 37) % w; c.beginPath(); c.moveTo(x, y); c.lineTo(x + 34, y); c.stroke(); } }, 40, 40);
+
+  // pier deck tiles, water, side decor (all recycled as you move)
+  const TILE = 24, NT = 7;
+  const deckGeo = new THREE.BoxGeometry(7.6, 0.6, TILE);
+  const tiles = [];
+  for (let i = 0; i < NT; i++){ const m = new THREE.Mesh(deckGeo, mat('#ffffff', deckTex)); m.position.y = -0.3; scene.add(m); tiles.push(m); }
+  const water = new THREE.Mesh(new THREE.PlaneGeometry(600, 600), new THREE.MeshBasicMaterial({ color:'#ffffff', map:waterTex }));
+  water.rotation.x = -Math.PI / 2; water.position.y = -1.1; scene.add(water);
+  const bollards = [];
+  const bolGeo = new THREE.CylinderGeometry(0.18, 0.22, 0.6, 10), bandGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.12, 10);
+  for (let i = 0; i < 24; i++){
+    const g = new THREE.Group();
+    g.add(new THREE.Mesh(bolGeo, mat('#2E3F52'))); const band = new THREE.Mesh(bandGeo, mat(PINK)); band.position.y = 0.12; g.add(band);
+    scene.add(g); bollards.push(g);
+  }
+  const decor = [];
+  for (let i = 0; i < 18; i++){
+    const g = new THREE.Group(), side = i % 2 ? 1 : -1, n = 1 + (i * 7) % 3;
+    const barge = outlinedBox(3.4, 0.9, 13, mat('#2E3F52'), 0.1); barge.position.set(0, -0.75, 0); g.add(barge);
+    for (let k = 0; k < n; k++){ const b = outlinedBox(2.4, 2.4, 11, mat(CONT_COLORS[(i + k) % 4], ribTex)); b.position.set(0, 1.2 + k * 2.45 - 0.3, 0); g.add(b); }
+    g.userData = { side, off:(i >> 1) * 30 + (side > 0 ? 11 : 0) };
+    scene.add(g); decor.push(g);
+  }
+  const cranes = [];
+  for (let i = 0; i < 3; i++){
+    const g = new THREE.Group(), legMat = mat('#E3A93B');
+    for (const sx of [-5.6, 5.6]){ const leg = outlinedBox(0.5, 13, 0.5, legMat, 0.1); leg.position.set(sx, 6.5, 0); g.add(leg); }
+    const top = outlinedBox(14, 0.9, 0.9, legMat, 0.1); top.position.y = 13; g.add(top);
+    scene.add(g); cranes.push(g);
+  }
+
+  // obstacle meshes are built lazily as they come into range
+  const rampGeoCache = new Map();
+  function rampGeo(){
+    if (rampGeoCache.has('r')) return rampGeoCache.get('r');
+    const w = 1.0, L = PH.RAMP, h = PH.CH;
+    // local coords: z = 0 at the container front, z = +L at the ramp foot (the rider comes from +z side... we place with -s)
+    const v = [-w,0,L, w,0,L, w,h,0, -w,h,0, -w,0,0, w,0,0];
+    const idx = [0,1,2, 0,2,3, 4,3,2, 4,2,5, 0,3,4, 1,5,2, 0,4,5, 0,5,1];
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3)); g.setIndex(idx);
+    const ng = g.toNonIndexed(); ng.computeVertexNormals(); rampGeoCache.set('r', ng); return ng;
+  }
+  function makeMesh(o){
+    let g;
+    if (o.h !== undefined){                       // container (+ ramp)
+      const L = o.s1 - o.s0, m = mat(o.color, ribTex);
+      g = new THREE.Group();
+      const b = outlinedBox(2.0, o.h, L, m, 0.09); b.position.set(0, o.h / 2, -L / 2); g.add(b);
+      if (o.ramp){
+        const r = new THREE.Mesh(rampGeo(), rampMat); g.add(r);
+        const ro = new THREE.Mesh(rampGeo(), inkMat); ro.scale.set(1.04, 1.03, 1.02); g.add(ro);
+      }
+      g.position.set(o.x0 + 1.0, 0, -o.s0);
+    } else if (o.kind){                            // crate, stack, beam
+      const w = o.x1 - o.x0, h = o.y1 - o.y0, d = o.s1 - o.s0;
+      if (o.kind === 'beam'){
+        g = new THREE.Group();
+        const board = outlinedBox(w, h, 0.25, mat('#ffffff', stripeTex), 0.08); board.position.y = h / 2; g.add(board);
+        for (const sx of [-w / 2 + 0.2, w / 2 - 0.2]){ const cab = new THREE.Mesh(boxGeo(0.06, 6, 0.06), inkMat); cab.position.set(sx, h + 3, 0); g.add(cab); }
+        g.position.set((o.x0 + o.x1) / 2, o.y0, -(o.s0 + o.s1) / 2);
+      } else {
+        g = outlinedBox(w, h, d, mat(PINK, crateTex), 0.08);
+        g.position.set((o.x0 + o.x1) / 2, o.y0 + h / 2, -(o.s0 + o.s1) / 2);
+      }
+    } else {                                       // coin
+      g = new THREE.Group();
+      const c = new THREE.Mesh(coinGeo, mat(GOLD)); c.rotation.x = Math.PI / 2; g.add(c);
+      const e = new THREE.Mesh(coinGeoO, inkMat); e.rotation.x = Math.PI / 2; g.add(e);
+      g.position.set(o.x, o.y, -o.s);
+    }
+    scene.add(g); o.mesh = g;
+  }
+  const rampMat = new THREE.MeshToonMaterial({ color:'#B97E4B', gradientMap:grad, side:THREE.DoubleSide });
+  const coinGeo = new THREE.CylinderGeometry(0.32, 0.32, 0.08, 18), coinGeoO = new THREE.CylinderGeometry(0.37, 0.37, 0.1, 18);
+
+  // the pelican on its bike, built from simple shapes with ink outlines
+  const rider = new THREE.Group(), body = new THREE.Group();
+  rider.add(body);
+  function blob(geo, color, sx, sy, sz, o = 1.08){
+    const g = new THREE.Group();
+    const m = new THREE.Mesh(geo, mat(color)); g.add(m);
+    const e = new THREE.Mesh(geo, inkMat); e.scale.setScalar(o); g.add(e);
+    g.scale.set(sx, sy, sz); return g;
+  }
+  const sph = new THREE.SphereGeometry(1, 18, 14);
+  const wheelGeo = new THREE.TorusGeometry(0.34, 0.055, 8, 22);
+  const wheels = [];
+  for (const z of [0.52, -0.52]){ const w = new THREE.Mesh(wheelGeo, mat(INK)); w.rotation.y = Math.PI / 2; w.position.set(0, 0.36, z); body.add(w); wheels.push(w); }
+  const frameMat = mat(TEAL);
+  const bar = (a, b, r = 0.045) => { const d = new THREE.Vector3().subVectors(b, a); const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, d.length(), 6), frameMat); m.position.copy(a).addScaledVector(d, 0.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.clone().normalize()); body.add(m); };
+  const V = (x, y, z) => new THREE.Vector3(x, y, z);
+  bar(V(0, 0.36, 0.52), V(0, 0.4, 0)); bar(V(0, 0.4, 0), V(0, 0.95, 0.12)); bar(V(0, 0.36, 0.52), V(0, 0.95, 0.12));
+  bar(V(0, 0.95, 0.12), V(0, 0.95, -0.4)); bar(V(0, 0.4, 0), V(0, 0.95, -0.4)); bar(V(0, 0.95, -0.4), V(0, 0.36, -0.52)); bar(V(0, 0.95, -0.4), V(0, 1.12, -0.45));
+  const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.6, 6), mat(INK)); handle.rotation.z = Math.PI / 2; handle.position.set(0, 1.12, -0.45); body.add(handle);
+  const torso = blob(sph, '#FFFDF6', 0.42, 0.36, 0.56); torso.position.set(0, 1.28, 0.08); body.add(torso);
+  const tail = blob(sph, '#FFFDF6', 0.16, 0.1, 0.28); tail.position.set(0, 1.36, 0.62); body.add(tail);
+  const neck = blob(new THREE.CylinderGeometry(0.12, 0.14, 0.62, 10), '#FFFDF6', 1, 1, 1, 1.12); neck.position.set(0, 1.62, -0.36); neck.rotation.x = -0.35; body.add(neck);
+  const head = blob(sph, '#FFFDF6', 0.21, 0.2, 0.22); head.position.set(0, 1.95, -0.48); body.add(head);
+  const beak = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.8, 10), mat('#F4A62A')); beak.rotation.x = -Math.PI / 2 + 0.12; beak.position.set(0, 1.9, -0.95); body.add(beak);
+  const pouch = blob(sph, '#F7C66A', 0.08, 0.1, 0.3, 1.1); pouch.position.set(0, 1.8, -0.86); body.add(pouch);
+  for (const sx of [-0.13, 0.13]){ const eye = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), mat(INK)); eye.position.set(sx, 2.0, -0.62); body.add(eye); }
+  const wingL = blob(sph, '#DDE5E8', 0.08, 0.2, 0.42), wingR = blob(sph, '#DDE5E8', 0.08, 0.2, 0.42);
+  wingL.position.set(-0.42, 1.34, 0.02); wingR.position.set(0.42, 1.34, 0.02); body.add(wingL); body.add(wingR);
+  const legMat = mat('#F0A032'), legs = [];
+  for (const sx of [-0.18, 0.18]){ const l = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.6, 6), legMat); l.position.set(sx, 0.75, 0.0); body.add(l); legs.push(l); }
+  const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.62, 20), new THREE.MeshBasicMaterial({ color:'#000000', transparent:true, opacity:0.22, depthWrite:false }));
+  shadow.rotation.x = -Math.PI / 2; scene.add(shadow);
+  scene.add(rider);
+  const flash = new THREE.Mesh(boxGeo(1, 1, 1), new THREE.MeshBasicMaterial({ color:PINK, transparent:true, opacity:0.35, depthWrite:false }));
+  flash.visible = false; scene.add(flash);
+
+  let camY = 3.6, camX = 0, lastW = 0, lastH = 0;
+  function size(){
+    const w = cv.clientWidth, h = cv.clientHeight;
+    if (!w || !h || (w === lastW && h === lastH)) return;
+    lastW = w; lastH = h;
+    renderer.setPixelRatio(Math.min(1.75, window.devicePixelRatio || 1));
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  function supportUnder(x, s, y){ return support(world, x, s, y + 0.05); }
+  return {
+    resetWorld(){ for (const o of scene.children.slice()) if (o.userData.ob) scene.remove(o); flash.visible = false; },
+    drop(o){ scene.remove(o.mesh); o.mesh = null; },
+    render(a, tt){
+      size();
+      const rs = prevP.s + (P.s - prevP.s) * a, rx = prevP.x + (P.x - prevP.x) * a, ry = prevP.y + (P.y - prevP.y) * a;
+      // lazily create meshes ahead, animate coins
+      for (const arr of [world.cont, world.box, world.coins]) for (const o of arr){
+        const s0 = o.s0 !== undefined ? o.s0 - PH.RAMP : o.s;
+        if (!o.mesh && s0 < rs + 125){ makeMesh(o); o.mesh.userData.ob = o; }
+        if (o.mesh && o.s !== undefined){ o.mesh.visible = !o.taken; o.mesh.rotation.y = tt * 0.06 + o.s; }
+      }
+      // deck tiles & decor recycle around the rider
+      const base = Math.floor(rs / TILE) * TILE - TILE;
+      tiles.forEach((m, i) => m.position.set(0, -0.3, -(base + i * TILE + TILE / 2)));
+      water.position.z = -rs - 100; waterTex.offset.set(0, 0);
+      const bb = Math.floor(rs / 8) * 8 - 16;
+      bollards.forEach((g, i) => g.position.set(i % 2 ? 3.55 : -3.55, 0.3, -(bb + (i >> 1) * 8)));
+      const db = Math.floor(rs / 30) * 30 - 30;
+      decor.forEach(g => { const k = g.userData; g.position.set(k.side * (11 + ((k.off / 30) % 2) * 4), 0, -(db + k.off + 5.5)); });
+      const cb = Math.floor(rs / 70) * 70;
+      cranes.forEach((g, i) => g.position.set(0, 0, -(cb + i * 70 + 35)));
+      // rider pose
+      rider.position.set(rx, ry, -rs);
+      const sliding = P.sl > 0, air = !P.gr;
+      body.rotation.x = sliding ? 0.55 : (air ? -0.12 : 0);
+      body.position.y = sliding ? -0.35 : 0; body.position.z = sliding ? 0.2 : 0;
+      body.scale.y = sliding ? 0.75 : 1;
+      rider.rotation.z = (rx - P.lane * PH.LANE) * 0.12;
+      const crank = rs * 1.6;
+      wheels.forEach(w => w.rotation.x = -crank);
+      legs[0].position.y = 0.75 + Math.sin(crank) * 0.12; legs[1].position.y = 0.75 - Math.sin(crank) * 0.12;
+      const flap = air ? Math.sin(tt * 0.5) * 0.6 + 0.4 : 0.1;
+      wingL.rotation.z = flap; wingR.rotation.z = -flap;
+      if (state === 'dead'){ const k = Math.min(1, (tick - death.t) / 20); rider.rotation.x = -k * 0.9; rider.rotation.z = k * 0.3; }
+      else if (state !== 'dead'){ rider.rotation.x = 0; }
+      shadow.position.set(rx, supportUnder(rx, rs, ry) + 0.02, -rs);
+      // camera
+      camX += (rx * 0.75 - camX) * 0.15;
+      camY += (ry + 3.6 - camY) * 0.08;
+      const shake = bumpT > 0 ? Math.sin(tick * 2.1) * 0.08 : 0;
+      camera.position.set(camX + shake, camY, -rs + 6.8);
+      camera.lookAt(camX * 0.6, camY - 2.1, -rs - 10);
+      // culprit
+      if (state === 'dead' && death.ob){
+        const o = death.ob, w = o.x1 - o.x0 + 0.3;
+        const y0 = o.h !== undefined ? 0 : o.y0, y1 = o.h !== undefined ? o.h : o.y1;
+        flash.visible = true; flash.scale.set(w, y1 - y0 + 0.3, Math.min(6, o.s1 - o.s0) + 0.3);
+        flash.position.set((o.x0 + o.x1) / 2, (y0 + y1) / 2, -(o.h !== undefined ? o.s0 + Math.min(6, o.s1 - o.s0) / 2 : (o.s0 + o.s1) / 2));
+        flash.material.opacity = 0.25 + 0.2 * Math.sin(tt * 0.3);
+      } else flash.visible = false;
+      renderer.render(scene, camera);
+    },
+  };
+}
+
+/* ---------- language (shared, see page script) ---------- */
+const TX = () => PB.t('dash');
+PB.games.dash = { hide(){ if (state === 'run'){ reset(); state = 'ready'; } }, press };
+
+/* ---------- HUD ---------- */
+let scale = 1;
+function fit(){
+  const r = { width:cv.clientWidth || cv.getBoundingClientRect().width }, dpr = Math.min(2, window.devicePixelRatio || 1);
+  hud.width = Math.max(1, Math.round(r.width * dpr));
+  hud.height = Math.max(1, Math.round(r.width * LH / LW * dpr));
+  scale = hud.width / LW;
+}
+new ResizeObserver(fit).observe(cv);
+fit();
+function drawHUD(tt){
+  const c = hx;
+  c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, hud.width, hud.height);
+  c.setTransform(scale, 0, 0, scale, 0, 0);
+  if (!scene3d){ panel(c, [{ t:TX().no3d, f:'20px "ZCOOL KuaiLe", "PingFang SC", sans-serif' }]); return; }
+  c.textBaseline = 'middle';
+  c.fillStyle = 'rgba(244,250,248,.85)'; rrect(c, 14, 12, 120, 38, 19); c.fill();
+  drawCoin(c, 36, 31, 0);
+  c.fillStyle = INK; c.font = '20px Bungee, "Arial Black", sans-serif'; c.textAlign = 'left';
+  c.fillText('× ' + coins, 52, 32);
+  c.fillStyle = 'rgba(244,250,248,.85)'; rrect(c, LW - 190, 12, 176, 58, 16); c.fill();
+  c.fillStyle = INK; c.textAlign = 'right'; c.font = '22px Bungee, "Arial Black", sans-serif';
+  c.fillText(String(meters()).padStart(4, '0') + ' m', LW - 28, 32);
+  c.font = '15px "ZCOOL KuaiLe", "PingFang SC", sans-serif'; c.fillStyle = 'rgba(30,42,56,.75)';
+  c.fillText(TX().best + ' ' + best, LW - 28, 56);
+  const F1 = '"ZCOOL KuaiLe", "PingFang SC", sans-serif';
+  if (state === 'ready') panel(c, [{ t:TX().start, f:'26px ' + F1 }, { t:TX().startSub, f:'17px ' + F1, c:'#43545F' }]);
+  if (state === 'dead') panel(c, [
+    { t:TX().why[death.why] || TX().crashed, f:'28px ' + F1, c:PINK },
+    { t:TX().stats(meters(), coins, score()), f:'19px ' + F1 },
+    { t:newBest ? TX().againBest : TX().again, f:'17px ' + F1, c:'#43545F' },
+  ]);
+}
+
+try { scene3d = build3D(); } catch(e){ scene3d = null; }
+let last = performance.now(), acc = 0;
+function frame(now){
+  if (PB.game !== 'dash'){ last = now; acc = 0; requestAnimationFrame(frame); return; }
+  let dt = (now - last) / 1000; last = now;
+  if (dt > 0.1) dt = 0.1;
+  acc += dt;
+  while (acc >= 1 / 60){ stepGame(); acc -= 1 / 60; }
+  if (state !== 'dead') runGen(world, 5, (P ? P.s : 0) + 170);
+  const a = state === 'run' ? acc * 60 : 1;
+  if (scene3d) scene3d.render(a, tick + a);
+  drawHUD(tick + a);
+  requestAnimationFrame(frame);
+}
+reset();
+requestAnimationFrame(frame);
+
+/* legend icons */
+document.querySelectorAll('[data-game="dash"] canvas[data-icon]').forEach(el => {
+  const c = el.getContext('2d'); c.scale(2, 2);
+  const k = el.dataset.icon; c.lineJoin = 'round';
+  const box = (x, y, w, h, f) => { c.fillStyle = f; c.strokeStyle = INK; c.lineWidth = 1.8; c.fillRect(x, y, w, h); c.strokeRect(x, y, w, h); };
+  if (k === 'crate'){ box(12, 12, 20, 18, PINK); c.beginPath(); c.moveTo(14, 14); c.lineTo(30, 28); c.moveTo(30, 14); c.lineTo(14, 28); c.strokeStyle = 'rgba(30,42,56,.5)'; c.lineWidth = 1.2; c.stroke(); }
+  else if (k === 'stack'){ box(12, 2, 20, 14, PINK); box(12, 16, 20, 14, PINK); }
+  else if (k === 'beam'){ c.strokeStyle = INK; c.lineWidth = 1.2; c.beginPath(); c.moveTo(12, 0); c.lineTo(12, 10); c.moveTo(32, 0); c.lineTo(32, 10); c.stroke(); box(6, 10, 32, 9, '#F5C132'); c.fillStyle = INK; for (let x = 8; x < 36; x += 7){ c.beginPath(); c.moveTo(x, 19); c.lineTo(x + 3, 10); c.lineTo(x + 6, 10); c.lineTo(x + 3, 19); c.fill(); } }
+  else if (k === 'cont'){ c.fillStyle = '#B97E4B'; c.strokeStyle = INK; c.lineWidth = 1.8; c.beginPath(); c.moveTo(2, 30); c.lineTo(16, 12); c.lineTo(16, 30); c.closePath(); c.fill(); c.stroke(); box(16, 12, 26, 18, '#3F77A8'); }
+  else if (k === 'top'){ box(4, 16, 36, 14, '#E3A93B'); box(20, 6, 9, 10, PINK); }
+  else if (k === 'coin') drawCoin(c, 22, 17, 0);
+});
+if (document.fonts && document.fonts.load){ document.fonts.load('20px Bungee'); document.fonts.load('20px "ZCOOL KuaiLe"', '鹈鹕 Pelican'); }
+})();
+</script>
+<script>
+(() => {
+  const GAMES = ['runner', 'flyer', 'dash'];
   const get = (d, path) => path.split('.').reduce((o, k) => o && o[k], d);
   const $$ = s => document.querySelectorAll(s);
   function apply(){
@@ -1679,6 +2418,9 @@ if (document.fonts && document.fonts.load){ document.fonts.load('20px Bungee'); 
   document.getElementById('fs-off').addEventListener('pointerdown', e => e.stopPropagation());
   ['fullscreenchange', 'webkitfullscreenchange'].forEach(ev => document.addEventListener(ev, () => { if (!fsEl() && stage.classList.contains('fs')) exitFs(); }));
   window.addEventListener('keydown', e => { if (e.key === 'Escape' && stage.classList.contains('fs')) exitFs(); });
+  // Swipe directions in game space: when the phone is upright in full screen the game is shown
+  // turned 90° clockwise, so screen-down is game-right and screen-right is game-up.
+  PB.mapDelta = (dx, dy) => (root.classList.contains('touch') && stage.classList.contains('fs') && matchMedia('(orientation: portrait)').matches) ? [dy, -dx] : [dx, dy];
   // In full screen, a tap anywhere (including the bars around the game) plays.
   stage.addEventListener('pointerdown', e => {
     if (!stage.classList.contains('fs') || e.target.closest('button') || e.target.tagName === 'CANVAS') return;
