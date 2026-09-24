@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>鹈鹕单车跑酷</title>
+<title>鹈鹕单车小游戏</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=ZCOOL+KuaiLe&display=swap">
@@ -11,7 +11,6 @@
   *,*::before,*::after{box-sizing:border-box}
   html{-webkit-text-size-adjust:100%}
   body{margin:0}
-  [hidden]{display:none!important}
   :root{
     --paper:#DCEBE7; --ink:#1E2A38; --pink:#EE5A7E; --gold:#F5C132;
     --teal:#2F8F9D; --card:#F4FAF8; --muted:#43545F;
@@ -45,8 +44,19 @@
   .tag{margin:0;color:var(--muted);font-size:15px;line-height:1.65}
   .ver{font-family:var(--num);font-size:11px;letter-spacing:.06em;color:var(--ink);background:#fff;border:2px solid var(--ink);border-radius:999px;padding:2px 10px;font-variant-numeric:tabular-nums}
   .stage{position:relative;border:3px solid var(--ink);border-radius:14px;overflow:hidden;box-shadow:6px 6px 0 var(--ink);background:#BFE3E6}
-  #game{display:block;width:100%;aspect-ratio:960/420;touch-action:manipulation;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
-  #game:focus-visible{outline:3px solid var(--pink);outline-offset:-7px}
+  .stage canvas{display:block;width:100%;touch-action:manipulation;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
+  [hidden]{display:none!important}   /* hidden game canvas / help panel must not be re-shown by display:block/grid */
+  #game-runner{aspect-ratio:960/420}
+  #game-flyer{aspect-ratio:960/480}
+  .stage canvas:focus-visible{outline:3px solid var(--pink);outline-offset:-7px}
+  /* game switcher */
+  .games{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+  .games button{font-family:var(--display);font-size:20px;line-height:1;color:var(--ink);background:var(--card);border:2px solid var(--ink);border-radius:12px;padding:9px 16px 8px;cursor:pointer;box-shadow:3px 3px 0 var(--ink);display:inline-flex;align-items:center;gap:10px;transition:transform .12s ease, box-shadow .12s ease}
+  .games button:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)}
+  .games button[aria-pressed="true"]{background:var(--ink);color:#fff;box-shadow:3px 3px 0 var(--pink)}
+  .games button:focus-visible{outline:3px solid var(--pink);outline-offset:3px}
+  .games .kind{font:600 11px/1 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;letter-spacing:.04em;opacity:.7}
+  @media (prefers-reduced-motion: reduce){.games button{transition:none}}
   .help{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.7fr);gap:16px;align-items:stretch}
   @media (max-width:720px){.help{grid-template-columns:1fr}}
   .panel{background:var(--card);border:2px solid var(--ink);border-radius:12px;padding:14px 16px;display:grid;gap:12px;align-content:start}
@@ -67,11 +77,11 @@
 
 <main class="wrap">
   <header>
-    <h1 data-i18n="h1">鹈鹕<em>单车</em>跑酷</h1>
+    <h1 data-i18n="page.h1">鹈鹕<em>单车</em>小游戏</h1>
     <div class="intro">
-      <p class="tag" data-i18n="tag">骑着单车沿码头一路向前：跳上吊板、冲上斜坡、捡金币。撞上螃蟹、木箱或掉进海里，这一趟就结束了。</p>
+      <p class="tag" id="tag"></p>
       <div class="meta">
-        <span class="ver" id="ver" data-i18n-title="verTitle" title="版本号">v1.5 · 2026-09-23</span>
+        <span class="ver" data-i18n-title="page.verTitle" title="版本号">v2.0 · 2026-09-24</span>
         <div class="langs" role="group" aria-label="语言 / Language">
           <button type="button" data-lang="zh" lang="zh-CN" aria-pressed="true">中文</button>
           <button type="button" data-lang="en" lang="en" aria-pressed="false">English</button>
@@ -80,38 +90,173 @@
     </div>
   </header>
 
-  <div class="stage">
-    <canvas id="game" tabindex="0" data-i18n-aria="aria" aria-label="鹈鹕单车跑酷游戏画面，按空格或点击跳跃"></canvas>
+  <div class="games" role="group" data-i18n-aria="page.pick" aria-label="选择游戏">
+    <button type="button" data-game="runner" aria-pressed="true"><span data-i18n="runner.title">鹈鹕单车跑酷</span><span class="kind" data-i18n="page.runnerKind">跑酷 · 跳平台</span></button>
+    <button type="button" data-game="flyer" aria-pressed="false"><span data-i18n="flyer.title">鹈鹕飞车</span><span class="kind" data-i18n="page.flyerKind">飞行 · 点击扇翅膀</span></button>
   </div>
 
-  <section class="help">
+  <div class="stage">
+    <canvas id="game-runner" tabindex="0" data-i18n-aria="runner.aria"></canvas>
+    <canvas id="game-flyer" tabindex="0" data-i18n-aria="flyer.aria" hidden></canvas>
+  </div>
+
+  <section class="help" data-game="runner">
     <div class="panel">
-      <h2 data-i18n="howTitle">怎么玩</h2>
+      <h2 data-i18n="runner.howTitle">怎么玩</h2>
       <div class="keys">
-        <div data-i18n="k1"><kbd>SPACE</kbd><kbd>↑</kbd><kbd>W</kbd> 或 点一下画面 —— 跳跃</div>
-        <div data-i18n="k2">落地前一瞬间按下也算数；刚骑出平台边缘的一小会儿也还能起跳。</div>
-        <div data-i18n="k3">撞上时会用粉色虚线圈出撞到的东西。</div>
-        <div data-i18n="k4">结束后按 <kbd>SPACE</kbd> 或点击画面重新出发。</div>
-        <div data-i18n="k5">越往后骑得越快，得分 = 距离(米) + 金币 × 10。</div>
+        <div data-i18n="runner.k1"><kbd>SPACE</kbd><kbd>↑</kbd><kbd>W</kbd> 或 点一下画面 —— 跳跃</div>
+        <div data-i18n="runner.k2">落地前一瞬间按下也算数；刚骑出平台边缘的一小会儿也还能起跳。</div>
+        <div data-i18n="runner.k3">撞上时会用粉色虚线圈出撞到的东西。</div>
+        <div data-i18n="runner.k4">结束后按 <kbd>SPACE</kbd> 或点击画面重新出发。</div>
+        <div data-i18n="runner.k5">越往后骑得越快，得分 = 距离(米) + 金币 × 10。</div>
       </div>
     </div>
     <div class="panel">
-      <h2 data-i18n="legendTitle">码头上有什么</h2>
+      <h2 data-i18n="runner.legendTitle">码头上有什么</h2>
       <ul class="legend">
-        <li><canvas data-icon="coin" width="88" height="68"></canvas><span data-i18n="lgCoin"><b>金币</b>：碰到就收下，+10 分</span></li>
-        <li><canvas data-icon="plank" width="88" height="68"></canvas><span data-i18n="lgPlank"><b>吊板</b>：平台，可以从下方穿过跳上去</span></li>
-        <li><canvas data-icon="ramp" width="88" height="68"></canvas><span data-i18n="lgRamp"><b>斜坡集装箱</b>：顺坡骑上，再起跳够高处</span></li>
-        <li><canvas data-icon="crab" width="88" height="68"></canvas><span data-i18n="lgCrab"><b>螃蟹 · 木箱 · 系缆桩</b>：跳过去</span></li>
-        <li><canvas data-icon="gull" width="88" height="68"></canvas><span data-i18n="lgGull"><b>海鸥</b>：从它下面骑过，别在这时起跳</span></li>
-        <li><canvas data-icon="block" width="88" height="68"></canvas><span data-i18n="lgBlock"><b>木台</b>：带黑黄条纹的一面是硬的，要跳上去</span></li>
-        <li><canvas data-icon="pit" width="88" height="68"></canvas><span data-i18n="lgPit"><b>码头缺口</b>：掉下去就是海</span></li>
+        <li><canvas data-icon="coin" width="88" height="68"></canvas><span data-i18n="runner.lgCoin"><b>金币</b>：碰到就收下，+10 分</span></li>
+        <li><canvas data-icon="plank" width="88" height="68"></canvas><span data-i18n="runner.lgPlank"><b>吊板</b>：平台，可以从下方穿过跳上去</span></li>
+        <li><canvas data-icon="ramp" width="88" height="68"></canvas><span data-i18n="runner.lgRamp"><b>斜坡集装箱</b>：顺坡骑上，再起跳够高处</span></li>
+        <li><canvas data-icon="crab" width="88" height="68"></canvas><span data-i18n="runner.lgCrab"><b>螃蟹 · 木箱 · 系缆桩</b>：跳过去</span></li>
+        <li><canvas data-icon="gull" width="88" height="68"></canvas><span data-i18n="runner.lgGull"><b>海鸥</b>：从它下面骑过，别在这时起跳</span></li>
+        <li><canvas data-icon="block" width="88" height="68"></canvas><span data-i18n="runner.lgBlock"><b>木台</b>：带黑黄条纹的一面是硬的，要跳上去</span></li>
+        <li><canvas data-icon="pit" width="88" height="68"></canvas><span data-i18n="runner.lgPit"><b>码头缺口</b>：掉下去就是海</span></li>
       </ul>
     </div>
-    <p class="note wide" data-i18n="note">每一段码头出现在屏幕之前，都会用和游戏完全相同的物理规则把所有起跳时机模拟一遍：起点必须有一条留出反应时间的活路，而且不管你在什么时机跳上吊板、斜坡或集装箱，上去之后也一定还有路可下。看得见的范围里，不会出现无路可走、被迫撞上的死局。</p>
+    <p class="note wide" data-i18n="runner.note">每一段码头出现在屏幕之前，都会用和游戏完全相同的物理规则把所有起跳时机模拟一遍：起点必须有一条留出反应时间的活路，而且不管你在什么时机跳上吊板、斜坡或集装箱，上去之后也一定还有路可下。看得见的范围里，不会出现无路可走、被迫撞上的死局。</p>
+  </section>
+  <section class="help" data-game="flyer" hidden>
+    <div class="panel">
+      <h2 data-i18n="flyer.howTitle"></h2>
+      <div class="keys">
+        <div data-i18n="flyer.k1"></div>
+        <div data-i18n="flyer.k2"></div>
+        <div data-i18n="flyer.k3"></div>
+        <div data-i18n="flyer.k4"></div>
+        <div data-i18n="flyer.k5"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2 data-i18n="flyer.legendTitle"></h2>
+      <ul class="legend">
+        <li><canvas data-icon="coin" width="88" height="68"></canvas><span data-i18n="flyer.lgCoin"></span></li>
+        <li><canvas data-icon="gate" width="88" height="68"></canvas><span data-i18n="flyer.lgGate"></span></li>
+        <li><canvas data-icon="gull" width="88" height="68"></canvas><span data-i18n="flyer.lgGull"></span></li>
+        <li><canvas data-icon="hook" width="88" height="68"></canvas><span data-i18n="flyer.lgHook"></span></li>
+        <li><canvas data-icon="sea" width="88" height="68"></canvas><span data-i18n="flyer.lgSea"></span></li>
+      </ul>
+    </div>
+    <p class="note wide" data-i18n="flyer.note"></p>
   </section>
 </main>
 
 <script>
+/* ---------- shared: language, game switching ---------- */
+const PB = { lang:'zh', game:'runner', games:{} };
+const I18N = {
+  zh: {
+    page:{ title:'鹈鹕单车小游戏', h1:'鹈鹕<em>单车</em>小游戏', verTitle:'版本号', pick:'选择游戏', runnerKind:'跑酷 · 跳平台', flyerKind:'飞行 · 点击扇翅膀' },
+    runner: {
+    title:'鹈鹕单车跑酷', h1:'鹈鹕<em>单车</em>跑酷',
+    tag:'骑着单车沿码头一路向前：跳上吊板、冲上斜坡、捡金币。撞上螃蟹、木箱或掉进海里，这一趟就结束了。',
+    verTitle:'版本号', aria:'鹈鹕单车跑酷游戏画面，按空格或点击跳跃',
+    howTitle:'怎么玩',
+    k1:'<kbd>SPACE</kbd><kbd>↑</kbd><kbd>W</kbd> 或 点一下画面 —— 跳跃',
+    k2:'落地前一瞬间按下也算数；刚骑出平台边缘的一小会儿也还能起跳。',
+    k3:'撞上时会用粉色虚线圈出撞到的东西。',
+    k4:'结束后按 <kbd>SPACE</kbd> 或点击画面重新出发。',
+    k5:'越往后骑得越快，得分 = 距离(米) + 金币 × 10。',
+    legendTitle:'码头上有什么',
+    lgCoin:'<b>金币</b>：碰到就收下，+10 分',
+    lgPlank:'<b>吊板</b>：平台，可以从下方穿过跳上去',
+    lgRamp:'<b>斜坡集装箱</b>：顺坡骑上，再起跳够高处',
+    lgCrab:'<b>螃蟹 · 木箱 · 系缆桩</b>：跳过去',
+    lgGull:'<b>海鸥</b>：从它下面骑过，别在这时起跳',
+    lgBlock:'<b>木台</b>：带黑黄条纹的一面是硬的，要跳上去',
+    lgPit:'<b>码头缺口</b>：掉下去就是海',
+    note:'每一段码头出现在屏幕之前，都会用和游戏完全相同的物理规则把所有起跳时机模拟一遍：起点必须有一条留出反应时间的活路，而且不管你在什么时机跳上吊板、斜坡或集装箱，上去之后也一定还有路可下。看得见的范围里，不会出现无路可走、被迫撞上的死局。',
+    best:'最佳', start:'按 空格 或 点一下画面 出发', startSub:'跳上吊板 · 冲上斜坡 · 捡金币',
+    crashed:'撞上了！', stats:(m, c, sc) => `${m} 米 · ${c} 金币 · 得分 ${sc}`,
+    again:'按 空格 / 点击 再骑一次', againBest:'新纪录！按 空格 / 点击 再骑一次',
+    why:{ crab:'撞上螃蟹了！', crate:'撞上木箱了！', tall:'撞上木箱堆了！', bollard:'撞上系缆桩了！', gull:'和海鸥撞了个满怀！', wall:'撞上了木台的侧面！', water:'扑通——掉进海里了！' },
+    },
+    flyer: {
+    title:'鹈鹕飞车', h1:'鹈鹕<em>飞车</em>',
+    tag:'鹈鹕蹬着单车飞过港口：点一下就扇一次翅膀，从集装箱塔和吊货之间的空当钻过去，再躲开巡飞的海鸥和摆动的吊钩。',
+    verTitle:'版本号', aria:'鹈鹕飞车游戏画面，按空格或点击扇动翅膀',
+    howTitle:'怎么玩',
+    k1:'<kbd>SPACE</kbd><kbd>↑</kbd><kbd>W</kbd> 或 点一下画面 —— 扇一下翅膀往上飞',
+    k2:'不按就会往下掉；连着点可以一路往上爬。',
+    k3:'飞到最顶上不会出事，只是没法再高；碰到海面就落水。',
+    k4:'撞上时会用粉色虚线圈出撞到的东西，按 <kbd>SPACE</kbd> 或点击再飞一次。',
+    k5:'每穿过一组障碍 +1 分，每个金币 +1 分；越往后飞得越快。',
+    legendTitle:'港口上空有什么',
+    lgCoin:'<b>金币</b>：碰到就收下，+1 分',
+    lgGate:'<b>集装箱塔 · 吊货</b>：从上下两截中间的空当穿过去',
+    lgGull:'<b>海鸥</b>：上下来回巡飞，看准节奏再过',
+    lgHook:'<b>吊钩</b>：左右摆动，绳子和货箱都会撞',
+    lgSea:'<b>海面</b>：碰到就落水',
+    note:'每一组障碍出现在屏幕之前，都会用和游戏完全相同的物理规则模拟一遍：不管你是以什么高度、什么速度离开上一组障碍，都一定有办法飞过下一组。判定时还把每个障碍放大了一圈，并假设你每秒最多只点 7 次左右，所以不需要极限操作。需要你应对时，这组障碍已经完整出现在屏幕里。',
+    best:'最佳', start:'按 空格 或 点一下画面 起飞', startSub:'点一下扇一次翅膀 · 从集装箱中间的空当穿过去',
+    crashed:'撞上了！', stats:(n, c, sc) => `穿过 ${n} 组 · ${c} 金币 · 得分 ${sc}`,
+    again:'按 空格 / 点击 再飞一次', againBest:'新纪录！按 空格 / 点击 再飞一次',
+    why:{ stack:'撞上集装箱塔了！', hang:'撞上吊着的货箱了！', gull:'和海鸥撞了个满怀！', hook:'被吊钩打中了！', water:'扑通——掉进海里了！' },
+    },
+  },
+  en: {
+    page:{ title:'Pelican Bike Games', h1:'Pelican <em>Bike</em> Games', verTitle:'Version', pick:'Choose a game', runnerKind:'platform jumper', flyerKind:'tap to flap' },
+    runner: {
+    title:'Pelican Pier Dash', h1:'Pelican <em>Pier</em> Dash',
+    tag:'Pedal a pelican down the pier: hop onto planks, ride up ramps, grab coins. Hit a crab or a crate, or fall into the sea, and the run ends.',
+    verTitle:'Version', aria:'Pelican Pier Dash game. Press Space or tap to jump.',
+    howTitle:'How to play',
+    k1:'<kbd>SPACE</kbd><kbd>↑</kbd><kbd>W</kbd> or tap the screen — jump',
+    k2:'A press just before landing still counts, and you can still jump for a moment after rolling off an edge.',
+    k3:'When you crash, whatever you hit is circled with a pink dashed line.',
+    k4:'After a crash, press <kbd>SPACE</kbd> or tap to ride again.',
+    k5:'You speed up the farther you go. Score = distance (m) + coins × 10.',
+    legendTitle:'What’s on the pier',
+    lgCoin:'<b>Coin</b>: collected on touch, +10 points',
+    lgPlank:'<b>Hanging plank</b>: a platform you can jump up through from below',
+    lgRamp:'<b>Ramp &amp; container</b>: ride up the slope, then jump for higher planks',
+    lgCrab:'<b>Crab · crate · bollard</b>: jump over them',
+    lgGull:'<b>Seagull</b>: ride under it — don’t jump there',
+    lgBlock:'<b>Wooden deck</b>: the striped side is solid, so jump onto it',
+    lgPit:'<b>Gap in the pier</b>: fall in and it’s the sea',
+    note:'Before each stretch of pier scrolls into view, it is played through with the game’s own physics at every possible jump timing. The start must have a way through with time to react, and however you get onto a plank, ramp or container, there is always a way back down. Within what you can see, there is never a dead end that forces a crash.',
+    best:'BEST', start:'Press Space or tap to start', startSub:'Hop planks · ride ramps · grab coins',
+    crashed:'Crashed!', stats:(m, c, sc) => `${m} m · ${c} coins · score ${sc}`,
+    again:'Press Space / tap to ride again', againBest:'New best! Press Space / tap to ride again',
+    why:{ crab:'Ran into a crab!', crate:'Hit a crate!', tall:'Hit a stack of crates!', bollard:'Hit a bollard!', gull:'Crashed into a seagull!', wall:'Hit the side of a wooden deck!', water:'Splash — into the sea!' },
+    },
+    flyer: {
+    title:'Pelican Sky Pedal', h1:'Pelican <em>Sky</em> Pedal',
+    tag:'A pelican pedals its bike over the harbor. Tap to flap, slip through the gaps between container towers and hanging cargo, and dodge gulls and swinging hooks.',
+    verTitle:'Version', aria:'Pelican Sky Pedal game. Press Space or tap to flap.',
+    howTitle:'How to play',
+    k1:'<kbd>SPACE</kbd><kbd>↑</kbd><kbd>W</kbd> or tap the screen — flap once to rise',
+    k2:'Stop tapping and you sink; keep tapping to keep climbing.',
+    k3:'The top of the sky is safe, you just can’t go higher. Touch the sea and you’re in the water.',
+    k4:'When you crash, whatever you hit is circled in pink. Press <kbd>SPACE</kbd> or tap to fly again.',
+    k5:'+1 for every set of obstacles you pass and +1 per coin. You speed up the farther you go.',
+    legendTitle:'What’s over the harbor',
+    lgCoin:'<b>Coin</b>: collected on touch, +1 point',
+    lgGate:'<b>Container tower · hanging cargo</b>: fly through the gap between them',
+    lgGull:'<b>Seagull</b>: patrols up and down, so time your pass',
+    lgHook:'<b>Crane hook</b>: swings side to side; rope and crate both count',
+    lgSea:'<b>The sea</b>: touch it and you’re down',
+    note:'Before each set of obstacles appears, it is flown through with the game’s own physics: however high or fast you leave the previous set, there is always a way through the next one. The check pads every obstacle and assumes no more than about 7 taps a second, so no frame-perfect play is needed. By the time you need to react, the whole set is already on screen.',
+    best:'BEST', start:'Press Space or tap to take off', startSub:'Tap to flap · fly through the gaps between containers',
+    crashed:'Crashed!', stats:(n, c, sc) => `${n} passed · ${c} coins · score ${sc}`,
+    again:'Press Space / tap to fly again', againBest:'New best! Press Space / tap to fly again',
+    why:{ stack:'Hit a container tower!', hang:'Hit the hanging cargo!', gull:'Crashed into a seagull!', hook:'Knocked by a crane hook!', water:'Splash — into the sea!' },
+    },
+  },
+};
+PB.t = g => I18N[PB.lang][g];
+</script>
+<script>
+/* ======== Game 1: 鹈鹕单车跑酷 / Pelican Pier Dash ======== */
 (() => {
 // @logic-start
 const PH = { G:0.8, JV:14, V0:6.2, VMAX:12.4, ACC:6.2/42000, BK:13, FR:15, STEP:14, SNAP:4, DEATH:-36, WIN:5, COY:6 };
@@ -372,7 +517,7 @@ const INK = '#1E2A38', PINK = '#EE5A7E', GOLD = '#F5C132', TEAL = '#2F8F9D';
 const LW = 960, LH = 420, GY = 318, PX = 170;
 const WATER_Y = GY + 62;
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const cv = document.getElementById('game'), ctx = cv.getContext('2d');
+const cv = document.getElementById('game-runner'), ctx = cv.getContext('2d');
 let scale = 1;
 
 function load(){ try { return +localStorage.getItem('pelican-best') || 0; } catch(e){ return 0; } }
@@ -454,6 +599,7 @@ function press(){
   if (state === 'dead' && performance.now() - deadAt > 450){ reset(); state = 'run'; }
 }
 window.addEventListener('keydown', e => {
+  if (PB.game !== 'runner') return;
   if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW'){
     e.preventDefault(); if (!e.repeat) press();
   } else if (e.code === 'Enter' && state !== 'run') press();
@@ -734,82 +880,9 @@ function drawCulprit(c, cam, t){
     c.closePath(); c.fill(); c.stroke(); c.restore();
   }
 }
-/* ---------- language ---------- */
-const I18N = {
-  zh: {
-    title:'鹈鹕单车跑酷', h1:'鹈鹕<em>单车</em>跑酷',
-    tag:'骑着单车沿码头一路向前：跳上吊板、冲上斜坡、捡金币。撞上螃蟹、木箱或掉进海里，这一趟就结束了。',
-    verTitle:'版本号', aria:'鹈鹕单车跑酷游戏画面，按空格或点击跳跃',
-    howTitle:'怎么玩',
-    k1:'<kbd>SPACE</kbd><kbd>↑</kbd><kbd>W</kbd> 或 点一下画面 —— 跳跃',
-    k2:'落地前一瞬间按下也算数；刚骑出平台边缘的一小会儿也还能起跳。',
-    k3:'撞上时会用粉色虚线圈出撞到的东西。',
-    k4:'结束后按 <kbd>SPACE</kbd> 或点击画面重新出发。',
-    k5:'越往后骑得越快，得分 = 距离(米) + 金币 × 10。',
-    legendTitle:'码头上有什么',
-    lgCoin:'<b>金币</b>：碰到就收下，+10 分',
-    lgPlank:'<b>吊板</b>：平台，可以从下方穿过跳上去',
-    lgRamp:'<b>斜坡集装箱</b>：顺坡骑上，再起跳够高处',
-    lgCrab:'<b>螃蟹 · 木箱 · 系缆桩</b>：跳过去',
-    lgGull:'<b>海鸥</b>：从它下面骑过，别在这时起跳',
-    lgBlock:'<b>木台</b>：带黑黄条纹的一面是硬的，要跳上去',
-    lgPit:'<b>码头缺口</b>：掉下去就是海',
-    note:'每一段码头出现在屏幕之前，都会用和游戏完全相同的物理规则把所有起跳时机模拟一遍：起点必须有一条留出反应时间的活路，而且不管你在什么时机跳上吊板、斜坡或集装箱，上去之后也一定还有路可下。看得见的范围里，不会出现无路可走、被迫撞上的死局。',
-    best:'最佳', start:'按 空格 或 点一下画面 出发', startSub:'跳上吊板 · 冲上斜坡 · 捡金币',
-    crashed:'撞上了！', stats:(m, c, sc) => `${m} 米 · ${c} 金币 · 得分 ${sc}`,
-    again:'按 空格 / 点击 再骑一次', againBest:'新纪录！按 空格 / 点击 再骑一次',
-    why:{ crab:'撞上螃蟹了！', crate:'撞上木箱了！', tall:'撞上木箱堆了！', bollard:'撞上系缆桩了！', gull:'和海鸥撞了个满怀！', wall:'撞上了木台的侧面！', water:'扑通——掉进海里了！' },
-  },
-  en: {
-    title:'Pelican Pier Dash', h1:'Pelican <em>Pier</em> Dash',
-    tag:'Pedal a pelican down the pier: hop onto planks, ride up ramps, grab coins. Hit a crab or a crate, or fall into the sea, and the run ends.',
-    verTitle:'Version', aria:'Pelican Pier Dash game. Press Space or tap to jump.',
-    howTitle:'How to play',
-    k1:'<kbd>SPACE</kbd><kbd>↑</kbd><kbd>W</kbd> or tap the screen — jump',
-    k2:'A press just before landing still counts, and you can still jump for a moment after rolling off an edge.',
-    k3:'When you crash, whatever you hit is circled with a pink dashed line.',
-    k4:'After a crash, press <kbd>SPACE</kbd> or tap to ride again.',
-    k5:'You speed up the farther you go. Score = distance (m) + coins × 10.',
-    legendTitle:'What’s on the pier',
-    lgCoin:'<b>Coin</b>: collected on touch, +10 points',
-    lgPlank:'<b>Hanging plank</b>: a platform you can jump up through from below',
-    lgRamp:'<b>Ramp &amp; container</b>: ride up the slope, then jump for higher planks',
-    lgCrab:'<b>Crab · crate · bollard</b>: jump over them',
-    lgGull:'<b>Seagull</b>: ride under it — don’t jump there',
-    lgBlock:'<b>Wooden deck</b>: the striped side is solid, so jump onto it',
-    lgPit:'<b>Gap in the pier</b>: fall in and it’s the sea',
-    note:'Before each stretch of pier scrolls into view, it is played through with the game’s own physics at every possible jump timing. The start must have a way through with time to react, and however you get onto a plank, ramp or container, there is always a way back down. Within what you can see, there is never a dead end that forces a crash.',
-    best:'BEST', start:'Press Space or tap to start', startSub:'Hop planks · ride ramps · grab coins',
-    crashed:'Crashed!', stats:(m, c, sc) => `${m} m · ${c} coins · score ${sc}`,
-    again:'Press Space / tap to ride again', againBest:'New best! Press Space / tap to ride again',
-    why:{ crab:'Ran into a crab!', crate:'Hit a crate!', tall:'Hit a stack of crates!', bollard:'Hit a bollard!', gull:'Crashed into a seagull!', wall:'Hit the side of a wooden deck!', water:'Splash — into the sea!' },
-  },
-};
-let lang = 'zh';
-const TX = () => I18N[lang];
-function setLang(l, remember){
-  lang = I18N[l] ? l : 'zh';
-  const d = TX();
-  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
-  document.title = d.title;
-  document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = d[el.dataset.i18n]; });
-  document.querySelectorAll('[data-i18n-aria]').forEach(el => el.setAttribute('aria-label', d[el.dataset.i18nAria]));
-  document.querySelectorAll('[data-i18n-title]').forEach(el => el.setAttribute('title', d[el.dataset.i18nTitle]));
-  document.querySelectorAll('.langs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
-  if (remember){ try { localStorage.setItem('pelican-lang', lang); } catch(e){} }
-}
-document.querySelectorAll('.langs button').forEach(b => b.addEventListener('click', () => {
-  setLang(b.dataset.lang, true);
-  b.blur(); cv.focus({ preventScroll:true });   // so Space goes to the game, not the button
-}));
-(() => {
-  let l = null;
-  const h = location.hash.replace('#', '');
-  if (I18N[h]) l = h;
-  if (!l){ try { l = localStorage.getItem('pelican-lang'); } catch(e){} }
-  if (!I18N[l]) l = /^zh/i.test(navigator.language || '') ? 'zh' : 'en';
-  setLang(l, false);
-})();
+/* ---------- language (shared, see page script) ---------- */
+const TX = () => PB.t('runner');
+PB.games.runner = { hide(){ if (state === 'run'){ reset(); state = 'ready'; } } };
 
 function render(alpha){
   ctx.setTransform(scale, 0, 0, scale, 0, 0);
@@ -861,6 +934,7 @@ fit();
 
 let last = performance.now(), acc = 0;
 function frame(now){
+  if (PB.game !== 'runner'){ last = now; acc = 0; requestAnimationFrame(frame); return; }
   let dt = (now - last) / 1000; last = now;
   if (dt > 0.1) dt = 0.1;
   acc += dt;
@@ -872,7 +946,7 @@ reset();
 requestAnimationFrame(frame);
 
 /* legend icons */
-document.querySelectorAll('canvas[data-icon]').forEach(el => {
+document.querySelectorAll('[data-game="runner"] canvas[data-icon]').forEach(el => {
   const c = el.getContext('2d'); c.scale(2, 2);
   const k = el.dataset.icon;
   c.lineCap = 'round'; c.lineJoin = 'round';
@@ -890,6 +964,660 @@ document.querySelectorAll('canvas[data-icon]').forEach(el => {
   }
 });
 if (document.fonts && document.fonts.load){ document.fonts.load('20px Bungee'); document.fonts.load('20px "ZCOOL KuaiLe"', '鹈鹕 Pelican'); }
+})();
+</script>
+<script>
+/* ======== Game 2: 鹈鹕飞车 / Pelican Sky Pedal ======== */
+(() => {
+// @logic-start
+/* Physics runs in fixed 1/60 s frames. Vertical speed is fully described by k = frames
+   since the last flap, which keeps the level checker's state space small and exact. */
+const PH = {
+  G:0.5, FLAP:-8, VMAX:7, KMAX:30, K0:16,    // VY[K0] === 0; falling tops out at 7 px/frame
+  CD:4,          // game: at least 4 frames between flaps (≈15 taps/s)
+  CD_SAFE:8,     // checker: assumes only ≈7.5 taps/s
+  V0:3.3, V1:4.8, ACC:0.0004,
+  TOP:42, SEA:440,   // TOP keeps the pelican's head on screen at the ceiling
+  BL:18, BR:20, BH:16,   // player hitbox around its centre
+  MX:5, MY:9, MSEA:10,   // extra padding the checker adds to every obstacle
+};
+const VY = [];
+for (let k = 0; k <= PH.KMAX; k++) VY.push(Math.min(PH.VMAX, PH.FLAP + PH.G * k));
+const speedAt = t => Math.min(PH.V1, PH.V0 + t * PH.ACC);
+const XS = [0];
+function Xat(t){ while (XS.length <= t){ const n = XS.length; XS.push(XS[n - 1] + speedAt(n - 1)); } return XS[t]; }
+function frameAtX(x){
+  while (XS[XS.length - 1] < x) Xat(XS.length);
+  let lo = 0, hi = XS.length - 1;
+  while (lo < hi){ const m = (lo + hi) >> 1; if (XS[m] >= x) hi = m; else lo = m + 1; }
+  return lo;
+}
+function pstep(y, k, flap){
+  if (flap && k >= PH.CD) k = 0; else if (k < PH.KMAX) k++;
+  y += VY[k];
+  if (y < PH.TOP){ y = PH.TOP; if (VY[k] < 0) k = PH.K0; }
+  return [y, k];
+}
+const TAU = Math.PI * 2;
+const gullY = (o, t) => o.c + o.A * Math.sin(TAU * t / o.P + o.ph);
+function hookEnd(o, t){
+  const a = o.th * Math.sin(TAU * t / o.P + o.ph);
+  return { x:o.px + o.L * Math.sin(a), y:o.py + o.L * Math.cos(a) };
+}
+// Returns the rectangle that was hit (for highlighting), or null.
+function hitOb(o, t, px, py, mx, my){
+  const L = px - PH.BL - mx, Rr = px + PH.BR + mx, T = py - PH.BH - my, B = py + PH.BH + my;
+  if (Rr < o.x0 || L > o.x1) return null;
+  if (o.type === 'stack') return B > o.top ? { x0:o.x0, x1:o.x1, y0:o.top, y1:PH.SEA + 30 } : null;
+  if (o.type === 'hang')  return T < o.bot ? { x0:o.x0, x1:o.x1, y0:-10, y1:o.bot } : null;
+  if (o.type === 'gull'){
+    const gy = gullY(o, t);
+    return (B > gy - 10 && T < gy + 10) ? { x0:o.x0, x1:o.x1, y0:gy - 10, y1:gy + 10 } : null;
+  }
+  if (o.type === 'hook'){
+    const e = hookEnd(o, t);
+    const cr = { x0:e.x - 20, x1:e.x + 20, y0:e.y, y1:e.y + 34 };
+    if (Rr > cr.x0 && L < cr.x1 && B > cr.y0 && T < cr.y1) return cr;
+    for (let i = 1; i <= 10; i++){
+      const rx = o.px + (e.x - o.px) * i / 10, ry = o.py + (e.y - o.py) * i / 10;
+      if (rx > L - 2 && rx < Rr + 2 && ry > T - 2 && ry < B + 2) return { x0:rx - 5, x1:rx + 5, y0:ry - 5, y1:ry + 5 };
+    }
+  }
+  return null;
+}
+function collide(W, t, y, mx, my, sm){
+  const px = Xat(t);
+  if (y + PH.BH + sm >= PH.SEA) return { why:'water' };
+  for (const o of W.obs){
+    if (o.x0 > px + 40 || o.x1 < px - 40) continue;
+    const r = hitOb(o, t, px, y, mx, my);
+    if (r) return { why:o.type, o, r };
+  }
+  return null;
+}
+
+/* ---- level checker ----
+   Forward: every state (height bucket × k) the bird can actually reach, frame by frame.
+   Backward: which of those states still have a way through using padded obstacles and
+   human-speed tapping. A new set of obstacles is accepted only if EVERY state the bird
+   could be in when the previous set ends can still get through it. */
+const YB = 2, NK = PH.KMAX + 1, NIDX = Math.ceil(520 / YB) * NK;
+const keyOf = (y, k) => Math.round(y / YB) * NK + k;
+function* validate(W, T0, F, T1){
+  const frames = [];
+  let cur = { y:[], k:[] };
+  const seen0 = new Int32Array(NIDX).fill(-1);
+  for (const [y, k] of F){ const id = keyOf(y, k); if (seen0[id] < 0){ seen0[id] = cur.y.length; cur.y.push(y); cur.k.push(k); } }
+  const mark = new Int32Array(NIDX).fill(-1);
+  let stamp = 0;
+  const stampArr = new Int32Array(NIDX);
+  for (let t = T0; t < T1; t++){
+    const n = cur.y.length;
+    cur.s0 = new Int32Array(n).fill(-1); cur.s1 = new Int32Array(n).fill(-1);
+    cur.f0 = new Uint8Array(n); cur.f1 = new Uint8Array(n);
+    const nxt = { y:[], k:[] };
+    stamp++;
+    for (let i = 0; i < n; i++){
+      const y = cur.y[i], k = cur.k[i];
+      for (let a = 0; a < 2; a++){
+        if (a === 1 && k < PH.CD) continue;
+        const [ny, nk] = pstep(y, k, a === 1);
+        if (collide(W, t + 1, ny, 0, 0, 0)) continue;
+        const id = keyOf(ny, nk);
+        let j;
+        if (stampArr[id] === stamp) j = mark[id];
+        else { stampArr[id] = stamp; j = mark[id] = nxt.y.length; nxt.y.push(ny); nxt.k.push(nk); }
+        // Padding starts 12 frames in, so positions that are legal (if tight) when the previous
+        // set ends are not ruled out before the player has had a moment to react.
+        const pad = t + 1 - T0 > 12;
+        const safe = (a === 0 || k >= PH.CD_SAFE) && !collide(W, t + 1, ny, pad ? PH.MX : 0, pad ? PH.MY : 0, pad ? PH.MSEA : 0);
+        if (a === 0){ cur.s0[i] = j; cur.f0[i] = safe ? 1 : 0; } else { cur.s1[i] = j; cur.f1[i] = safe ? 1 : 0; }
+      }
+    }
+    frames.push(cur); cur = nxt;
+    if (cur.y.length === 0) return { ok:false, F:[] };
+    if ((t & 7) === 7) yield;
+  }
+  let V = new Uint8Array(cur.y.length).fill(1);
+  for (let f = frames.length - 1; f >= 0; f--){
+    const fr = frames[f], n = fr.y.length, v = new Uint8Array(n);
+    for (let i = 0; i < n; i++){
+      v[i] = ((fr.s0[i] >= 0 && fr.f0[i] && V[fr.s0[i]]) || (fr.s1[i] >= 0 && fr.f1[i] && V[fr.s1[i]])) ? 1 : 0;
+    }
+    V = v;
+  }
+  let ok = true;
+  for (let i = 0; i < V.length; i++) if (!V[i]){ ok = false; break; }
+  const nextF = [];
+  for (let i = 0; i < cur.y.length; i++) nextF.push([cur.y[i], cur.k[i]]);
+  return { ok, F:nextF };
+}
+
+/* ---- level generator ---- */
+let RNG = Math.random;
+const R = (a, b) => a + (b - a) * RNG();
+const GW = 68;   // width of a container tower
+function newWorld(){ return { obs:[], coins:[], groups:[], lastEnd:0, Tb:0, F:[[220, PH.KMAX]], n:0, gen:null, lastC:240 }; }
+function gate(C, x, c, g){
+  C.obs.push({ type:'hang',  x0:x, x1:x + GW, bot:c - g / 2 });
+  C.obs.push({ type:'stack', x0:x, x1:x + GW, top:c + g / 2 });
+  C.coins.push({ x:x + GW / 2, y:c });
+  return x + GW;
+}
+function gull(C, x, c, A, P){
+  C.obs.push({ type:'gull', x0:x, x1:x + 42, c, A, P, ph:R(0, TAU) });
+  return x + 42;
+}
+function hook(C, x, L, th, P){
+  const px = x + L * Math.sin(th) + 20;
+  C.obs.push({ type:'hook', px, py:-20, L, th, P, ph:R(0, TAU), x0:px - L * Math.sin(th) - 22, x1:px + L * Math.sin(th) + 22 });
+  return px + L * Math.sin(th) + 22;
+}
+const clampC = c => Math.max(120, Math.min(350, c));
+const T = {
+  gate(C, x, d, w){ const g = R(172, 184) - 42 * d, c = clampC(w.lastC + R(-150, 150)); w.lastC = c; return gate(C, x, c, g); },
+  gateGull(C, x, d, w){
+    const g = R(176, 188) - 36 * d, c = clampC(w.lastC + R(-120, 120)); w.lastC = c;
+    let e = gate(C, x, c, g);
+    e = gull(C, e + R(120, 170), clampC(c + R(-40, 40)), R(40, 75), R(120, 180));
+    C.coins.push({ x:e + 50, y:clampC(c + R(-60, 60)) });
+    return e;
+  },
+  slalom(C, x, d, w){
+    const up = RNG() < 0.5, g = R(170, 182) - 36 * d;
+    const c1 = up ? R(250, 330) : R(130, 210), c2 = clampC(c1 + (up ? -1 : 1) * R(60, 110));
+    let e = gate(C, x, c1, g);
+    e = gate(C, e + R(120, 170), c2, g);
+    w.lastC = c2; return e;
+  },
+  gulls(C, x, d, w){
+    let e = gull(C, x, R(180, 290), R(70, 110), R(140, 190));
+    C.coins.push({ x:e + 40, y:R(150, 330) });
+    e = gull(C, e + R(90, 140), R(180, 290), R(70, 110), R(140, 190));
+    return e;
+  },
+  hook(C, x, d, w){
+    let e = hook(C, x, R(200, 290), R(0.3, 0.55), R(160, 220));
+    if (RNG() < 0.5){ C.obs.push({ type:'stack', x0:e + R(40, 90), x1:0, top:R(330, 380) }); const s = C.obs[C.obs.length - 1]; s.x1 = s.x0 + GW; e = s.x1; }
+    C.coins.push({ x:e + 40, y:R(150, 320) });
+    return e;
+  },
+};
+const WEIGHTS = [['gate', 4, 0], ['gateGull', 2, 0.12], ['slalom', 2, 0.08], ['gulls', 1.4, 0.2], ['hook', 1.6, 0.15]];
+function pickT(d, n){
+  if (n < 2) return 'gate';
+  const opts = WEIGHTS.filter(w => d >= w[2]);
+  let r = RNG() * opts.reduce((a, w) => a + w[1], 0);
+  for (const w of opts){ r -= w[1]; if (r <= 0) return w[0]; }
+  return 'gate';
+}
+function* genChunk(world){
+  const s = world.lastEnd, d = Math.min(1, s / 30000);
+  const near = world.obs.filter(o => o.x1 > s - 200);
+  for (let tries = 0; tries < 24; tries++){
+    const C = { obs:[], coins:[] };
+    const saveC = world.lastC;
+    const lead = world.n === 0 ? 700 : R(210, 290) - 40 * d;
+    const kind = pickT(d, world.n);
+    const e = T[kind](C, s + lead, d, world);
+    const end = Math.ceil(e + 30);
+    const W = { obs:near.concat(C.obs) };
+    const res = yield* validate(W, world.Tb, world.F, frameAtX(end));
+    if (res.ok){ commit(world, C, end, res.F); return tries; }
+    world.lastC = saveC;
+  }
+  // Fallback: a wide, centred gap with a long run-up.
+  for (const g of [200, 240, 290]){
+    const C = { obs:[], coins:[] };
+    const e = gate(C, s + 320, 240, g), end = Math.ceil(e + 30);
+    const res = yield* validate({ obs:near.concat(C.obs) }, world.Tb, world.F, frameAtX(end));
+    if (res.ok){ world.lastC = 240; commit(world, C, end, res.F); return -1; }
+  }
+  const end = s + 400, res = yield* validate({ obs:near }, world.Tb, world.F, frameAtX(end));
+  commit(world, { obs:[], coins:[] }, end, res.F);
+  return -2;
+}
+function commit(world, C, end, F){
+  world.obs.push(...C.obs); world.coins.push(...C.coins);
+  world.groups.push(end - 30);
+  world.lastEnd = end; world.Tb = frameAtX(end); world.F = F; world.n++;
+}
+function runGen(world, budgetMs, until){
+  const t0 = (typeof performance !== 'undefined' ? performance : Date).now();
+  while (world.lastEnd < until){
+    if (!world.gen) world.gen = genChunk(world);
+    if (world.gen.next().done) world.gen = null;
+    if (budgetMs >= 0 && (typeof performance !== 'undefined' ? performance : Date).now() - t0 > budgetMs) break;
+  }
+}
+// @logic-end
+
+/* ---------------- rendering & game loop ---------------- */
+const INK = '#1E2A38', PINK = '#EE5A7E', GOLD = '#F5C132', TEAL = '#2F8F9D';
+const LW = 960, LH = 480, PX = 230, HORIZON = 300;
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const cv = document.getElementById('game-flyer'), ctx = cv.getContext('2d');
+let scale = 1;
+
+function load(){ try { return +localStorage.getItem('pelican-fly-best') || 0; } catch(e){ return 0; } }
+function save(v){ try { localStorage.setItem('pelican-fly-best', String(v)); } catch(e){} }
+
+let world, P, prevP, t = 0, state = 'ready', coins = 0, passed = 0, best = load(), buf = 0, deadAt = 0, death = null, tick = 0, parts = [], newBest = false, fall = null;
+
+function reset(){
+  world = newWorld();
+  runGen(world, -1, 1500);          // first stretch synchronously
+  P = { y:220, k:PH.KMAX }; prevP = P;
+  t = 0; coins = 0; passed = 0; buf = 0; death = null; newBest = false; parts = []; fall = null;
+}
+const score = () => passed + coins;
+
+function burst(x, y, n, color, spd = 3, up = 1){
+  if (reduced) n = Math.ceil(n / 3);
+  for (let i = 0; i < n; i++){
+    const a = Math.random() * TAU;
+    parts.push({ x, y, vx:Math.cos(a) * spd * Math.random(), vy:Math.sin(a) * spd * Math.random() - up, life:1, color, r:2 + Math.random() * 2.5 });
+  }
+}
+
+function stepGame(){
+  tick++;
+  for (const p of parts){ p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life -= 0.03; }
+  parts = parts.filter(p => p.life > 0);
+  if (state === 'dead'){
+    if (fall.hold > 0){ fall.hold--; return; }
+    if (fall.y < PH.SEA + 60){ fall.vy = Math.min(fall.vy + 0.6, 12); fall.y += fall.vy; fall.rot += 0.06;
+      if (!fall.splashed && fall.y + 16 >= PH.SEA){ fall.splashed = true; burst(Xat(t), PH.SEA, 18, '#DFF4F2', 4, 3); } }
+    return;
+  }
+  if (state !== 'run') return;
+  const flap = buf > 0 && P.k >= PH.CD;
+  if (buf > 0) buf--;
+  if (flap){ buf = 0; burst(Xat(t) - 14, P.y + 6, 3, '#FFFFFF', 1.6, -0.5); }
+  const [ny, nk] = pstep(P.y, P.k, flap);
+  prevP = P; P = { y:ny, k:nk }; t++;
+  const hit = collide(world, t, ny, 0, 0, 0);
+  if (hit){ die(hit); return; }
+  const px = Xat(t);
+  for (const c of world.coins){
+    if (c.taken || Math.abs(c.x - (px + 1)) > 30) continue;
+    if (Math.abs(c.y - ny) < 26){ c.taken = true; coins++; burst(c.x, c.y, 10, GOLD, 3.2, 1); }
+  }
+  while (passed < world.groups.length && world.groups[passed] < px - PH.BL) passed++;
+  if (world.lastEnd < px + 900) runGen(world, -1, px + 900);    // never let the level pop into view
+  if (tick % 240 === 0){
+    const cut = px - 800;
+    world.obs = world.obs.filter(o => o.x1 > cut);
+    world.coins = world.coins.filter(c => c.x > cut);
+  }
+}
+function die(hit){
+  state = 'dead'; deadAt = performance.now(); death = hit; death.t = t;
+  prevP = P;
+  fall = { y:P.y, vy:-3, rot:0, hold:hit.why === 'water' ? 0 : 24, splashed:hit.why === 'water' };
+  if (hit.why === 'water') burst(Xat(t), PH.SEA, 22, '#DFF4F2', 4, 3);
+  else burst(Xat(t) + 16, P.y, 14, '#FFFFFF', 3.5, 1.5);
+  const sc = score();
+  if (sc > best){ best = sc; newBest = true; save(best); }
+}
+function press(){
+  if (state === 'ready'){ state = 'run'; buf = 6; return; }
+  if (state === 'run'){ buf = 6; return; }
+  if (state === 'dead' && performance.now() - deadAt > 450){ reset(); state = 'run'; buf = 6; }
+}
+window.addEventListener('keydown', e => {
+  if (PB.game !== 'flyer') return;
+  if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW'){
+    e.preventDefault(); if (!e.repeat) press();
+  } else if (e.code === 'Enter' && state !== 'run') press();
+});
+cv.addEventListener('pointerdown', e => { e.preventDefault(); cv.focus({ preventScroll:true }); press(); });
+
+/* ---------- drawing helpers (shared look with 鹈鹕单车跑酷) ---------- */
+function rrect(c, x, y, w, h, r){ c.beginPath(); c.roundRect ? c.roundRect(x, y, w, h, r) : c.rect(x, y, w, h); }
+function drawCrate(c, x, y, w, h){
+  c.fillStyle = PINK; c.strokeStyle = INK; c.lineWidth = 2.5;
+  rrect(c, x, y, w, h, 3); c.fill(); c.stroke();
+  c.strokeStyle = 'rgba(30,42,56,.55)'; c.lineWidth = 1.5;
+  c.beginPath(); c.moveTo(x + 4, y + 4); c.lineTo(x + w - 4, y + h - 4); c.moveTo(x + w - 4, y + 4); c.lineTo(x + 4, y + h - 4); c.stroke();
+  c.fillStyle = 'rgba(255,255,255,.35)'; c.fillRect(x + 3, y + 3, w - 6, 3);
+}
+function drawGull(c, x, y, w, h, t){
+  const cx = x + w / 2, cy = y + h / 2, f = Math.sin(t * 0.3) * 9;
+  c.strokeStyle = INK; c.lineWidth = 2.2; c.fillStyle = '#AEBBC3';
+  for (const s of [-1, 1]){ c.beginPath(); c.moveTo(cx + s * 3, cy); c.quadraticCurveTo(cx + s * 12, cy - 10 - f, cx + s * 22, cy - 4 - f * 1.3); c.lineTo(cx + s * 8, cy + 3); c.closePath(); c.fill(); c.stroke(); }
+  c.fillStyle = '#FFFFFF';
+  c.beginPath(); c.ellipse(cx, cy + 2, 12, 6, 0, 0, TAU); c.fill(); c.stroke();
+  c.beginPath(); c.arc(cx - 11, cy - 1, 5, 0, 7); c.fill(); c.stroke();
+  c.fillStyle = GOLD; c.beginPath(); c.moveTo(cx - 15, cy - 2); c.lineTo(cx - 22, cy); c.lineTo(cx - 15, cy + 1); c.closePath(); c.fill(); c.stroke();
+  c.fillStyle = INK; c.beginPath(); c.arc(cx - 12, cy - 2, 1.2, 0, 7); c.fill();
+}
+function drawCoin(c, x, y, t){
+  const k = Math.abs(Math.cos(t * 0.08 + x * 0.01));
+  c.save(); c.translate(x, y); c.scale(Math.max(0.2, k), 1);
+  c.fillStyle = GOLD; c.strokeStyle = INK; c.lineWidth = 2.2;
+  c.beginPath(); c.arc(0, 0, 9, 0, 7); c.fill(); c.stroke();
+  c.strokeStyle = '#C9921A'; c.lineWidth = 1.6; c.beginPath(); c.arc(0, 0, 5.5, 0, 7); c.stroke();
+  c.restore();
+}
+function drawContainer(c, x, y, w, h, color){
+  c.fillStyle = color; c.fillRect(x, y, w, h);
+  c.strokeStyle = 'rgba(0,0,0,.18)'; c.lineWidth = 3; c.beginPath();
+  for (let i = x + 10; i < x + w - 4; i += 12){ c.moveTo(i, y + 6); c.lineTo(i, y + h - 4); }
+  c.stroke();
+  c.strokeStyle = INK; c.lineWidth = 2.5; c.strokeRect(x, y, w, h);
+  c.fillStyle = 'rgba(255,255,255,.28)'; c.fillRect(x + 2, y + 2, w - 4, 4);
+}
+const BOX_COLORS = ['#3F77A8', '#E3A93B', '#2F8F9D', '#C9553F'];
+const BOX_H = 34;
+function drawStack(c, x, top, w, seed){
+  // barge at the waterline, containers stacked up to `top`
+  let i = 0;
+  for (let y = top; y < PH.SEA - 4; y += BOX_H, i++) drawContainer(c, x, y, w, Math.min(BOX_H, PH.SEA - 4 - y + 8), BOX_COLORS[(seed + i) % 4]);
+  c.fillStyle = '#2E3F52'; c.strokeStyle = INK; c.lineWidth = 2.5;
+  rrect(c, x - 8, PH.SEA - 8, w + 16, 16, 4); c.fill(); c.stroke();
+}
+function drawHang(c, x, bot, w, seed){
+  // crane beam at the top, cables, containers hanging down to `bot`
+  const n = Math.max(1, Math.ceil((bot - 16) / BOX_H));
+  c.strokeStyle = INK; c.lineWidth = 2;
+  c.beginPath(); c.moveTo(x + 12, 10); c.lineTo(x + 12, bot - n * BOX_H + 2); c.moveTo(x + w - 12, 10); c.lineTo(x + w - 12, bot - n * BOX_H + 2); c.stroke();
+  for (let i = 0; i < n; i++) drawContainer(c, x, bot - (i + 1) * BOX_H, w, BOX_H, BOX_COLORS[(seed + i + 1) % 4]);
+  c.fillStyle = '#E3A93B'; c.strokeStyle = INK; c.lineWidth = 2.5;
+  c.fillRect(x - 14, -4, w + 28, 14); c.strokeRect(x - 14, -4, w + 28, 14);
+  c.strokeStyle = INK; c.lineWidth = 1.5; c.beginPath();
+  for (let i = x - 10; i < x + w + 10; i += 12){ c.moveTo(i, -4); c.lineTo(i + 8, 10); }
+  c.stroke();
+}
+function drawHookOb(c, o, cam, tt){
+  const e = hookEnd(o, tt), px = o.px - cam, ex = e.x - cam;
+  c.strokeStyle = INK; c.lineWidth = 2.5;
+  c.beginPath(); c.moveTo(px, o.py); c.lineTo(ex, e.y); c.stroke();
+  c.lineWidth = 3; c.beginPath(); c.arc(ex, e.y - 4, 5, 0.3, Math.PI * 1.4); c.stroke();
+  drawCrate(c, ex - 20, e.y, 40, 34);
+}
+function limb(c, hx, hy, px, py, L1, L2){
+  const dx = px - hx, dy = py - hy, d = Math.min(Math.hypot(dx, dy), L1 + L2 - 0.01);
+  const a = Math.atan2(dy, dx), k = Math.acos(Math.max(-1, Math.min(1, (L1 * L1 + d * d - L2 * L2) / (2 * L1 * d))));
+  const k1 = { x:hx + L1 * Math.cos(a - k), y:hy + L1 * Math.sin(a - k) }, k2 = { x:hx + L1 * Math.cos(a + k), y:hy + L1 * Math.sin(a + k) };
+  const kn = k1.x > k2.x ? k1 : k2;
+  c.beginPath(); c.moveTo(hx, hy); c.lineTo(kn.x, kn.y); c.lineTo(px, py);
+  c.strokeStyle = INK; c.lineWidth = 6; c.stroke();
+  c.strokeStyle = '#F0A032'; c.lineWidth = 3; c.stroke();
+}
+// Pelican on its bike. (sx, sy) is the bottom of the wheels; `wing` 0 = down, 1 = raised.
+function drawRider(c, sx, sy, crank, wing, rot){
+  c.save(); c.translate(sx, sy); if (rot) c.rotate(rot);
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  const pa = { x:1 + 7 * Math.cos(crank), y:-12 + 7 * Math.sin(crank) }, pb = { x:1 - 7 * Math.cos(crank), y:-12 - 7 * Math.sin(crank) };
+  limb(c, -3, -34, pb.x, pb.y, 11, 13);
+  for (const wx of [-14, 17]){
+    c.strokeStyle = INK; c.lineWidth = 3.2; c.fillStyle = 'rgba(255,255,255,.35)';
+    c.beginPath(); c.arc(wx, -11, 11, 0, 7); c.fill(); c.stroke();
+    c.lineWidth = 1; c.beginPath();
+    for (let i = 0; i < 3; i++){ const a = crank * 1.4 + i * Math.PI / 3; c.moveTo(wx - Math.cos(a) * 10, -11 - Math.sin(a) * 10); c.lineTo(wx + Math.cos(a) * 10, -11 + Math.sin(a) * 10); }
+    c.stroke();
+  }
+  c.strokeStyle = TEAL; c.lineWidth = 3.4; c.beginPath();
+  c.moveTo(-14, -11); c.lineTo(1, -12); c.lineTo(13, -28); c.lineTo(-5, -29); c.lineTo(1, -12);
+  c.moveTo(-14, -11); c.lineTo(-5, -29); c.moveTo(13, -28); c.lineTo(17, -11);
+  c.stroke();
+  c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(13, -28); c.lineTo(12, -35); c.lineTo(18, -36); c.moveTo(-10, -31); c.lineTo(-1, -31); c.stroke();
+  c.fillStyle = '#FFFDF6'; c.strokeStyle = INK; c.lineWidth = 2.4;
+  c.beginPath(); c.moveTo(-15, -44); c.lineTo(-26, -48); c.lineTo(-22, -38); c.closePath(); c.fill(); c.stroke();
+  c.beginPath(); c.ellipse(-4, -41, 15, 11, -0.25, 0, TAU); c.fill(); c.stroke();
+  c.lineWidth = 12; c.beginPath(); c.moveTo(4, -46); c.quadraticCurveTo(10, -52, 8, -60); c.stroke();
+  c.strokeStyle = '#FFFDF6'; c.lineWidth = 7.5; c.stroke();
+  c.strokeStyle = INK; c.lineWidth = 2.4;
+  c.beginPath(); c.arc(9, -62, 7, 0, 7); c.fill(); c.stroke();
+  c.fillStyle = '#F7C66A'; c.beginPath(); c.moveTo(13, -59); c.quadraticCurveTo(25, -47, 37, -56); c.lineTo(14, -61); c.closePath(); c.fill(); c.stroke();
+  c.fillStyle = '#F4A62A'; c.beginPath(); c.moveTo(13, -65); c.lineTo(41, -58); c.lineTo(14, -59); c.closePath(); c.fill(); c.stroke();
+  c.fillStyle = INK; c.beginPath(); c.arc(10, -64, 1.6, 0, 7); c.fill();
+  // wing: blends between a downstroke and a raised pose
+  const tipX = 10 - 4 * wing, tipY = -30 - 42 * wing;
+  c.fillStyle = '#DDE5E8';
+  c.beginPath(); c.moveTo(-12, -44);
+  c.quadraticCurveTo(-18 + 6 * wing, -40 - 22 * wing, tipX - 6, tipY);
+  c.lineTo(tipX + 6, tipY + 4);
+  c.quadraticCurveTo(4, -42 - 10 * wing, 2, -40);
+  c.closePath(); c.fill(); c.stroke();
+  c.strokeStyle = 'rgba(30,42,56,.35)'; c.lineWidth = 1.2;
+  c.beginPath(); c.moveTo(-6, -42 - 6 * wing); c.lineTo(tipX - 2, tipY + 6); c.stroke();
+  limb(c, -3, -34, pa.x, pa.y, 11, 13);
+  c.restore();
+}
+
+/* ---------- background ---------- */
+function hillY(wx){ return HORIZON - 16 - 14 * Math.sin(wx * 0.004) - 10 * Math.sin(wx * 0.011 + 1.3) - 6 * Math.sin(wx * 0.023 + 0.4); }
+function drawBackground(c, cam, tt){
+  const g = c.createLinearGradient(0, 0, 0, HORIZON);
+  g.addColorStop(0, '#A9DAE0'); g.addColorStop(1, '#E6F3EE');
+  c.fillStyle = g; c.fillRect(0, 0, LW, HORIZON);
+  c.fillStyle = '#FBE7A8'; c.beginPath(); c.arc(800, 96, 36, 0, 7); c.fill();
+  c.fillStyle = 'rgba(255,255,255,.9)';
+  const cc = cam * 0.08;
+  for (let i = Math.floor((cc - 200) / 520); i < Math.floor((cc + LW + 200) / 520) + 1; i++){
+    const x = i * 520 - cc + ((i * 137) % 200), y = 60 + ((i * 53) % 90);
+    c.beginPath(); c.ellipse(x, y, 46, 13, 0, 0, 7); c.ellipse(x + 26, y - 9, 26, 13, 0, 0, 7); c.ellipse(x - 20, y - 6, 20, 10, 0, 0, 7); c.fill();
+  }
+  const hc = cam * 0.15;
+  c.fillStyle = '#9CCBB6'; c.beginPath(); c.moveTo(0, HORIZON);
+  for (let x = 0; x <= LW; x += 16) c.lineTo(x, hillY(x + hc));
+  c.lineTo(LW, HORIZON); c.closePath(); c.fill();
+  // lighthouses and sailboats: fill only, no outlines
+  const lc = cam * 0.2;
+  for (let i = Math.floor((lc - 100) / 2200); i <= Math.floor((lc + LW + 100) / 2200); i++){
+    const x = i * 2200 + 640 - lc, by = hillY(x + hc) + 4;
+    c.fillStyle = '#FFFFFF';
+    c.beginPath(); c.moveTo(x - 9, by); c.lineTo(x - 6, by - 58); c.lineTo(x + 6, by - 58); c.lineTo(x + 9, by); c.closePath(); c.fill();
+    c.fillStyle = PINK; c.fillRect(x - 8, by - 20, 16, 8); c.fillRect(x - 7, by - 42, 14, 8);
+    c.fillStyle = '#6F8791'; c.fillRect(x - 8, by - 66, 16, 8);
+    c.fillStyle = '#FBE7A8'; c.fillRect(x - 5, by - 64, 10, 5);
+  }
+  const s = c.createLinearGradient(0, HORIZON, 0, LH);
+  s.addColorStop(0, '#86C9C7'); s.addColorStop(1, '#4FA6AE');
+  c.fillStyle = s; c.fillRect(0, HORIZON, LW, LH - HORIZON);
+  c.strokeStyle = 'rgba(255,255,255,.45)'; c.lineWidth = 1.5;
+  const wc = cam * 0.35;
+  c.beginPath();
+  for (let r = 0; r < 5; r++){
+    const y = HORIZON + 12 + r * 20, off = (wc * (0.6 + r * 0.25)) % 90;
+    for (let x = -off + (r % 2) * 45; x < LW; x += 90){ c.moveTo(x, y); c.lineTo(x + 22, y); }
+  }
+  c.stroke();
+  const bc = cam * 0.32;
+  for (let i = Math.floor((bc - 80) / 1300); i <= Math.floor((bc + LW + 80) / 1300); i++){
+    const x = i * 1300 + 300 + ((i * 211) % 400) - bc, y = HORIZON + 18 + ((i * 7) % 3) * 5, bob = Math.sin(tt * 0.04 + i) * 1.5;
+    c.fillStyle = '#FFFFFF';
+    c.beginPath(); c.moveTo(x, y - 30 + bob); c.lineTo(x, y - 4 + bob); c.lineTo(x + 16, y - 4 + bob); c.closePath(); c.fill();
+    c.fillStyle = PINK; c.beginPath(); c.moveTo(x - 12, y - 3 + bob); c.lineTo(x + 20, y - 3 + bob); c.lineTo(x + 15, y + 3 + bob); c.lineTo(x - 8, y + 3 + bob); c.closePath(); c.fill();
+  }
+}
+function drawSea(c, cam, tt){
+  c.fillStyle = 'rgba(38,120,134,.92)'; c.fillRect(0, PH.SEA, LW, LH - PH.SEA);
+  c.strokeStyle = '#FFFFFF'; c.lineWidth = 2.5; c.beginPath();
+  for (let x = 0; x <= LW; x += 8){ const y = PH.SEA + Math.sin((x + cam) * 0.05 + tt * 0.08) * 2.4; x ? c.lineTo(x, y) : c.moveTo(x, y); }
+  c.stroke();
+  c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 1.5; c.beginPath();
+  for (let r = 0; r < 2; r++){ const off = (cam * (1 + r * 0.3)) % 120; for (let x = -off + r * 60; x < LW; x += 120){ c.moveTo(x, PH.SEA + 14 + r * 12); c.lineTo(x + 30, PH.SEA + 14 + r * 12); } }
+  c.stroke();
+}
+
+/* ---------- language (shared, see page script) ---------- */
+const TX = () => PB.t('flyer');
+PB.games.flyer = { hide(){ if (state === 'run'){ reset(); state = 'ready'; } } };
+
+/* ---------- HUD & overlays ---------- */
+function drawHUD(c){
+  c.textBaseline = 'middle';
+  drawCoin(c, 30, 30, 0);
+  c.fillStyle = INK; c.font = '20px Bungee, "Arial Black", sans-serif'; c.textAlign = 'left';
+  c.fillText('× ' + coins, 46, 31);
+  c.textAlign = 'center'; c.font = '34px Bungee, "Arial Black", sans-serif';
+  c.lineWidth = 6; c.strokeStyle = '#F4FAF8'; c.lineJoin = 'round';
+  c.strokeText(String(score()), LW / 2, 40); c.fillText(String(score()), LW / 2, 40);
+  c.textAlign = 'right'; c.font = '16px "ZCOOL KuaiLe", "PingFang SC", sans-serif'; c.fillStyle = 'rgba(30,42,56,.75)';
+  c.fillText(TX().best + ' ' + best, LW - 22, 31);
+}
+function panel(c, lines){
+  let w = 460;
+  for (const l of lines){ c.font = l.f; w = Math.max(w, c.measureText(l.t).width + 64); }
+  w = Math.min(w, LW - 40);
+  const h = 30 + lines.length * 34, x = (LW - w) / 2, y = 96;
+  c.fillStyle = INK; rrect(c, x + 6, y + 6, w, h, 14); c.fill();
+  c.fillStyle = '#F4FAF8'; c.strokeStyle = INK; c.lineWidth = 3; rrect(c, x, y, w, h, 14); c.fill(); c.stroke();
+  c.textAlign = 'center'; c.textBaseline = 'middle';
+  lines.forEach((l, i) => { c.font = l.f; c.fillStyle = l.c || INK; c.fillText(l.t, LW / 2, y + 32 + i * 34); });
+}
+function drawCulprit(c, cam, tt){
+  if (!death.r) return;
+  const r = death.r, pulse = 0.75 + 0.25 * Math.sin(tt * 0.3);
+  c.save(); c.strokeStyle = PINK; c.lineWidth = 3.5; c.setLineDash([7, 5]); c.globalAlpha = pulse;
+  rrect(c, r.x0 - cam - 7, Math.max(-4, r.y0 - 7), r.x1 - r.x0 + 14, Math.min(LH + 8, r.y1 + 7) - Math.max(-4, r.y0 - 7), 8); c.stroke();
+  c.restore();
+  const px = Xat(death.t), cx = Math.max(r.x0, Math.min(r.x1, px + 10)) - cam, cy = Math.max(r.y0, Math.min(r.y1, prevP.y));
+  c.save(); c.translate(cx, cy); c.rotate(tt * 0.02);
+  c.fillStyle = '#FFF4C2'; c.strokeStyle = INK; c.lineWidth = 2.2; c.beginPath();
+  for (let i = 0; i < 16; i++){ const rr = i % 2 ? 6 : 15, a = i * Math.PI / 8; c.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); }
+  c.closePath(); c.fill(); c.stroke(); c.restore();
+}
+
+function render(alpha){
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  const running = state === 'run';
+  const tt = running ? t - 1 + alpha : t;           // render time between the last two physics frames
+  const px = running ? Xat(Math.max(0, t - 1)) + (Xat(t) - Xat(Math.max(0, t - 1))) * alpha : Xat(t);
+  const ry = running ? prevP.y + (P.y - prevP.y) * alpha : P.y;
+  const cam = px - PX, anim = tick + alpha;
+  drawBackground(ctx, cam, anim);
+  const inView = o => o.x1 > cam - 80 && o.x0 < cam + LW + 80;
+  let seed = 0;
+  for (const o of world.obs){
+    seed++;
+    if (!inView(o)) continue;
+    if (o.type === 'stack') drawStack(ctx, o.x0 - cam, o.top, o.x1 - o.x0, Math.floor(o.x0) % 4);
+    else if (o.type === 'hang') drawHang(ctx, o.x0 - cam, o.bot, o.x1 - o.x0, Math.floor(o.x0) % 4);
+    else if (o.type === 'gull') drawGull(ctx, o.x0 - cam, gullY(o, tt) - 10, 42, 20, anim);
+    else if (o.type === 'hook') drawHookOb(ctx, o, cam, tt);
+  }
+  for (const co of world.coins) if (!co.taken && co.x > cam - 20 && co.x < cam + LW + 20) drawCoin(ctx, co.x - cam, co.y, anim);
+  if (state === 'dead') drawCulprit(ctx, cam, anim);
+  // rider: hitbox centre at ry; the wheels sit ~30px below it
+  const k = P.k, vy = VY[Math.min(k, PH.KMAX)];
+  const wing = state === 'ready' ? 0.5 + 0.5 * Math.sin(anim * 0.25) : Math.max(0, 1 - k / 7);
+  const crank = px / 9 + (state === 'ready' ? anim * 0.12 : 0);
+  if (state === 'dead') drawRider(ctx, PX, fall.y + 30, crank, 0.2, 0.25 + fall.rot);
+  else {
+    const hover = state === 'ready' ? Math.sin(anim * 0.06) * 5 : 0;
+    drawRider(ctx, PX, ry + 30 + hover, crank, wing, state === 'ready' ? 0 : Math.max(-0.35, Math.min(0.5, vy * 0.045)));
+  }
+  for (const p of parts){ ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x - cam, p.y, p.r, 0, 7); ctx.fill(); }
+  ctx.globalAlpha = 1;
+  drawSea(ctx, cam, anim);
+  drawHUD(ctx);
+  const F1 = '"ZCOOL KuaiLe", "PingFang SC", sans-serif';
+  if (state === 'ready') panel(ctx, [
+    { t:TX().start, f:'26px ' + F1 },
+    { t:TX().startSub, f:'18px ' + F1, c:'#43545F' },
+  ]);
+  if (state === 'dead') panel(ctx, [
+    { t:TX().why[death.why] || TX().crashed, f:'28px ' + F1, c:PINK },
+    { t:TX().stats(passed, coins, score()), f:'19px ' + F1 },
+    { t:newBest ? TX().againBest : TX().again, f:'17px ' + F1, c:'#43545F' },
+  ]);
+}
+
+function fit(){
+  const r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = Math.max(1, Math.round(r.width * dpr));
+  cv.height = Math.max(1, Math.round(r.width * LH / LW * dpr));
+  scale = cv.width / LW;
+}
+new ResizeObserver(fit).observe(cv);
+fit();
+
+let last = performance.now(), acc = 0;
+function frame(now){
+  if (PB.game !== 'flyer'){ last = now; acc = 0; requestAnimationFrame(frame); return; }
+  let dt = (now - last) / 1000; last = now;
+  if (dt > 0.1) dt = 0.1;
+  acc += dt;
+  while (acc >= 1 / 60){ stepGame(); acc -= 1 / 60; }
+  if (state !== 'dead') runGen(world, 5, Xat(t) + 2600);   // spread level checking across frames
+  render(acc * 60);
+  requestAnimationFrame(frame);
+}
+reset();
+requestAnimationFrame(frame);
+
+/* legend icons */
+document.querySelectorAll('[data-game="flyer"] canvas[data-icon]').forEach(el => {
+  const c = el.getContext('2d'); c.scale(2, 2);
+  const k = el.dataset.icon;
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  if (k === 'coin') drawCoin(c, 22, 17, 0);
+  else if (k === 'gate'){
+    c.save(); c.scale(0.5, 0.5);
+    drawContainer(c, 24, -6, 40, 22, '#3F77A8'); drawContainer(c, 24, 48, 40, 22, '#E3A93B');
+    c.restore();
+    c.strokeStyle = PINK; c.lineWidth = 1.4; c.setLineDash([2, 2]); c.beginPath(); c.moveTo(4, 17); c.lineTo(40, 17); c.stroke();
+  }
+  else if (k === 'gull') drawGull(c, 1, 6, 42, 20, 3);
+  else if (k === 'hook'){
+    c.strokeStyle = INK; c.lineWidth = 1.6; c.beginPath(); c.moveTo(16, 0); c.lineTo(26, 16); c.stroke();
+    c.save(); c.translate(26, 16); c.scale(0.45, 0.45); drawCrate(c, -20, 0, 40, 34); c.restore();
+  }
+  else if (k === 'sea'){
+    c.fillStyle = '#2F8F9D'; c.fillRect(0, 18, 44, 16);
+    c.strokeStyle = '#fff'; c.lineWidth = 1.6; c.beginPath();
+    for (let x = 0; x <= 44; x += 4){ const y = 18 + Math.sin(x * 0.4) * 1.5; x ? c.lineTo(x, y) : c.moveTo(x, y); }
+    c.stroke();
+  }
+});
+if (document.fonts && document.fonts.load){ document.fonts.load('20px Bungee'); document.fonts.load('20px "ZCOOL KuaiLe"', '鹈鹕 Pelican'); }
+})();
+</script>
+<script>
+(() => {
+  const GAMES = ['runner', 'flyer'];
+  const get = (d, path) => path.split('.').reduce((o, k) => o && o[k], d);
+  const $$ = s => document.querySelectorAll(s);
+  function apply(){
+    const d = I18N[PB.lang];
+    document.documentElement.lang = PB.lang === 'zh' ? 'zh-CN' : 'en';
+    document.title = d.page.title;
+    $$('[data-i18n]').forEach(el => { el.innerHTML = get(d, el.dataset.i18n); });
+    $$('[data-i18n-aria]').forEach(el => el.setAttribute('aria-label', get(d, el.dataset.i18nAria)));
+    $$('[data-i18n-title]').forEach(el => el.setAttribute('title', get(d, el.dataset.i18nTitle)));
+    $$('.langs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === PB.lang)));
+    document.getElementById('tag').innerHTML = d[PB.game].tag;
+  }
+  const remember = (k, v) => { try { localStorage.setItem(k, v); } catch(e){} };
+  const recall = k => { try { return localStorage.getItem(k); } catch(e){ return null; } };
+  function setLang(l, keep){ PB.lang = I18N[l] ? l : 'zh'; apply(); if (keep) remember('pelican-lang', PB.lang); }
+  function setGame(g, keep){
+    if (!GAMES.includes(g)) g = 'runner';
+    if (g !== PB.game && PB.games[PB.game]) PB.games[PB.game].hide();
+    PB.game = g;
+    GAMES.forEach(x => {
+      document.getElementById('game-' + x).hidden = x !== g;
+      document.querySelector(`.help[data-game="${x}"]`).hidden = x !== g;
+    });
+    $$('.games button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.game === g)));
+    apply();
+    if (keep) remember('pelican-game', g);
+  }
+  const focusGame = () => document.getElementById('game-' + PB.game).focus({ preventScroll:true });
+  // After clicking a switch, hand focus back to the game so Space jumps/flaps instead of re-clicking.
+  $$('.langs button').forEach(b => b.addEventListener('click', () => { setLang(b.dataset.lang, true); b.blur(); focusGame(); }));
+  $$('.games button').forEach(b => b.addEventListener('click', () => { setGame(b.dataset.game, true); b.blur(); focusGame(); }));
+  // #flyer, #en, #flyer-en … pick a game and/or language straight from the link
+  const tokens = location.hash.replace('#', '').split('-');
+  let l = tokens.find(x => I18N[x]) || recall('pelican-lang');
+  if (!I18N[l]) l = /^zh/i.test(navigator.language || '') ? 'zh' : 'en';
+  let g = tokens.find(x => GAMES.includes(x)) || recall('pelican-game') || 'runner';
+  PB.lang = l;
+  setGame(g, false);
 })();
 </script>
 </body>

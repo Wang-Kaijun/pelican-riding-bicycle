@@ -10,4 +10,4 @@ The same prompt — a pelican riding a bicycle, in pure SVG + JavaScript — giv
 - [Kimi K2.8 Preview](https://wang-kaijun.github.io/pelican-riding-bicycle/kimi-k2-8-preview-max.html)
 - [MiMo v2.6 Pro](https://wang-kaijun.github.io/pelican-riding-bicycle/mimo-v2-6-pro.html)
 - [Gemini 3.8 Flash (High)](https://wang-kaijun.github.io/pelican-riding-bicycle/gemini-3-8-flash-high.html)
-- [Claude Opus 5.5（跑酷版）](https://wang-kaijun.github.io/pelican-riding-bicycle/claude-opus-5-5-platformer.html)
+- [Claude Opus 5.5（跑酷版 + 飞车版）](https://wang-kaijun.github.io/pelican-riding-bicycle/claude-opus-5-5-platformer.html)
