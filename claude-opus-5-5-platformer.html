@@ -57,6 +57,31 @@
   .games button:focus-visible{outline:3px solid var(--pink);outline-offset:3px}
   .games .kind{font:600 11px/1 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;letter-spacing:.04em;opacity:.7}
   @media (prefers-reduced-motion: reduce){.games button{transition:none}}
+  /* full screen */
+  .games .fsbtn{margin-left:auto;font:600 13px/1 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;letter-spacing:.02em;background:#fff;border-radius:999px;padding:8px 14px;box-shadow:2px 2px 0 var(--ink);gap:7px}
+  .games .fsbtn svg{width:16px;height:16px;flex:none}
+  @media (max-width:520px){.games .fsbtn{margin-left:0}}
+  .fs-exit,.fs-hint{display:none}
+  html.is-fs,html.is-fs body{overflow:hidden;overscroll-behavior:none}
+  .stage.fs{position:fixed;inset:0;z-index:1000;margin:0;border:0;border-radius:0;box-shadow:none;background:#16242F;
+    display:flex;align-items:center;justify-content:center;
+    padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);
+    touch-action:manipulation;-webkit-user-select:none;user-select:none}
+  /* keep each game's proportions and fit the screen (letterboxed); vh first, dvh where supported */
+  .stage.fs #game-runner{width:min(100%, calc((100vh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) * 960 / 420));
+                         width:min(100%, calc((100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) * 960 / 420))}
+  .stage.fs #game-flyer{width:min(100%, calc((100vh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) * 960 / 480));
+                        width:min(100%, calc((100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) * 960 / 480))}
+  .stage.fs .fs-exit{display:inline-flex;align-items:center;gap:6px;position:absolute;z-index:2;
+    right:calc(env(safe-area-inset-right,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 12px);
+    font:600 13px/1 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:rgba(255,255,255,.88);
+    border:2px solid var(--ink);border-radius:999px;padding:8px 12px;cursor:pointer}
+  .stage.fs .fs-exit svg{width:14px;height:14px}
+  .stage.fs .fs-exit:focus-visible{outline:3px solid var(--pink);outline-offset:2px}
+  @media (orientation:portrait){
+    .stage.fs .fs-hint{display:block;position:absolute;left:16px;right:16px;top:calc(env(safe-area-inset-top,0px) + 18px);
+      text-align:center;color:#DCEBE7;font:15px/1.6 var(--display);text-wrap:balance;margin:0}
+  }
   .help{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.7fr);gap:16px;align-items:stretch}
   @media (max-width:720px){.help{grid-template-columns:1fr}}
   .panel{background:var(--card);border:2px solid var(--ink);border-radius:12px;padding:14px 16px;display:grid;gap:12px;align-content:start}
@@ -81,7 +106,7 @@
     <div class="intro">
       <p class="tag" id="tag"></p>
       <div class="meta">
-        <span class="ver" data-i18n-title="page.verTitle" title="版本号">v2.0 · 2026-09-24</span>
+        <span class="ver" data-i18n-title="page.verTitle" title="版本号">v2.1 · 2026-09-24</span>
         <div class="langs" role="group" aria-label="语言 / Language">
           <button type="button" data-lang="zh" lang="zh-CN" aria-pressed="true">中文</button>
           <button type="button" data-lang="en" lang="en" aria-pressed="false">English</button>
@@ -93,11 +118,14 @@
   <div class="games" role="group" data-i18n-aria="page.pick" aria-label="选择游戏">
     <button type="button" data-game="runner" aria-pressed="true"><span data-i18n="runner.title">鹈鹕单车跑酷</span><span class="kind" data-i18n="page.runnerKind">跑酷 · 跳平台</span></button>
     <button type="button" data-game="flyer" aria-pressed="false"><span data-i18n="flyer.title">鹈鹕飞车</span><span class="kind" data-i18n="page.flyerKind">飞行 · 点击扇翅膀</span></button>
+    <button type="button" class="fsbtn" id="fs-on"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M1.5 5.5v-4h4M10.5 1.5h4v4M14.5 10.5v4h-4M5.5 14.5h-4v-4"/></svg><span data-i18n="page.fs">全屏</span></button>
   </div>
 
   <div class="stage">
     <canvas id="game-runner" tabindex="0" data-i18n-aria="runner.aria"></canvas>
     <canvas id="game-flyer" tabindex="0" data-i18n-aria="flyer.aria" hidden></canvas>
+    <p class="fs-hint" data-i18n="page.fsHint">把手机横过来，画面会更大</p>
+    <button type="button" class="fs-exit" id="fs-off"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg><span data-i18n="page.fsExit">退出全屏</span></button>
   </div>
 
   <section class="help" data-game="runner">
@@ -155,7 +183,7 @@
 const PB = { lang:'zh', game:'runner', games:{} };
 const I18N = {
   zh: {
-    page:{ title:'鹈鹕单车小游戏', h1:'鹈鹕<em>单车</em>小游戏', verTitle:'版本号', pick:'选择游戏', runnerKind:'跑酷 · 跳平台', flyerKind:'飞行 · 点击扇翅膀' },
+    page:{ title:'鹈鹕单车小游戏', h1:'鹈鹕<em>单车</em>小游戏', verTitle:'版本号', pick:'选择游戏', runnerKind:'跑酷 · 跳平台', flyerKind:'飞行 · 点击扇翅膀', fs:'全屏', fsExit:'退出全屏', fsHint:'横过来玩，画面更大<br>点屏幕任意位置都能操作' },
     runner: {
     title:'鹈鹕单车跑酷', h1:'鹈鹕<em>单车</em>跑酷',
     tag:'骑着单车沿码头一路向前：跳上吊板、冲上斜坡、捡金币。撞上螃蟹、木箱或掉进海里，这一趟就结束了。',
@@ -204,7 +232,7 @@ const I18N = {
     },
   },
   en: {
-    page:{ title:'Pelican Bike Games', h1:'Pelican <em>Bike</em> Games', verTitle:'Version', pick:'Choose a game', runnerKind:'platform jumper', flyerKind:'tap to flap' },
+    page:{ title:'Pelican Bike Games', h1:'Pelican <em>Bike</em> Games', verTitle:'Version', pick:'Choose a game', runnerKind:'platform jumper', flyerKind:'tap to flap', fs:'Full screen', fsExit:'Exit full screen', fsHint:'Turn your phone sideways for a bigger view.<br>Tap anywhere to play.' },
     runner: {
     title:'Pelican Pier Dash', h1:'Pelican <em>Pier</em> Dash',
     tag:'Pedal a pelican down the pier: hop onto planks, ride up ramps, grab coins. Hit a crab or a crate, or fall into the sea, and the run ends.',
@@ -882,7 +910,7 @@ function drawCulprit(c, cam, t){
 }
 /* ---------- language (shared, see page script) ---------- */
 const TX = () => PB.t('runner');
-PB.games.runner = { hide(){ if (state === 'run'){ reset(); state = 'ready'; } } };
+PB.games.runner = { hide(){ if (state === 'run'){ reset(); state = 'ready'; } }, press };
 
 function render(alpha){
   ctx.setTransform(scale, 0, 0, scale, 0, 0);
@@ -1445,7 +1473,7 @@ function drawSea(c, cam, tt){
 
 /* ---------- language (shared, see page script) ---------- */
 const TX = () => PB.t('flyer');
-PB.games.flyer = { hide(){ if (state === 'run'){ reset(); state = 'ready'; } } };
+PB.games.flyer = { hide(){ if (state === 'run'){ reset(); state = 'ready'; } }, press };
 
 /* ---------- HUD & overlays ---------- */
 function drawHUD(c){
@@ -1603,14 +1631,47 @@ if (document.fonts && document.fonts.load){ document.fonts.load('20px Bungee'); 
       document.getElementById('game-' + x).hidden = x !== g;
       document.querySelector(`.help[data-game="${x}"]`).hidden = x !== g;
     });
-    $$('.games button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.game === g)));
+    $$('.games button[data-game]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.game === g)));
     apply();
     if (keep) remember('pelican-game', g);
   }
   const focusGame = () => document.getElementById('game-' + PB.game).focus({ preventScroll:true });
   // After clicking a switch, hand focus back to the game so Space jumps/flaps instead of re-clicking.
   $$('.langs button').forEach(b => b.addEventListener('click', () => { setLang(b.dataset.lang, true); b.blur(); focusGame(); }));
-  $$('.games button').forEach(b => b.addEventListener('click', () => { setGame(b.dataset.game, true); b.blur(); focusGame(); }));
+  $$('.games button[data-game]').forEach(b => b.addEventListener('click', () => { setGame(b.dataset.game, true); b.blur(); focusGame(); }));
+  /* ---- full screen ----
+     Real Fullscreen API where the browser allows it (desktop, Android); otherwise — e.g. iPhone
+     Safari, which only allows it for video — the stage is pinned over the whole window instead.
+     Either way the game keeps its proportions, so what you can see ahead never changes. */
+  const stage = document.querySelector('.stage'), root = document.documentElement;
+  const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
+  function enterFs(){
+    stage.classList.add('fs'); root.classList.add('is-fs');
+    const req = stage.requestFullscreen || stage.webkitRequestFullscreen;
+    if (req){
+      try {
+        const p = req.call(stage);
+        if (p && p.then) p.then(() => { try { screen.orientation.lock('landscape').catch(() => {}); } catch(e){} }).catch(() => {});
+      } catch(e){}
+    }
+    focusGame();
+  }
+  function exitFs(){
+    stage.classList.remove('fs'); root.classList.remove('is-fs');
+    try { screen.orientation && screen.orientation.unlock && screen.orientation.unlock(); } catch(e){}
+    if (fsEl()){ const ex = document.exitFullscreen || document.webkitExitFullscreen; try { const p = ex && ex.call(document); if (p && p.catch) p.catch(() => {}); } catch(e){} }
+  }
+  document.getElementById('fs-on').addEventListener('click', e => { e.currentTarget.blur(); enterFs(); });
+  document.getElementById('fs-off').addEventListener('click', e => { e.stopPropagation(); exitFs(); });
+  document.getElementById('fs-off').addEventListener('pointerdown', e => e.stopPropagation());
+  ['fullscreenchange', 'webkitfullscreenchange'].forEach(ev => document.addEventListener(ev, () => { if (!fsEl() && stage.classList.contains('fs')) exitFs(); }));
+  window.addEventListener('keydown', e => { if (e.key === 'Escape' && stage.classList.contains('fs')) exitFs(); });
+  // In full screen, a tap anywhere (including the bars around the game) plays.
+  stage.addEventListener('pointerdown', e => {
+    if (!stage.classList.contains('fs') || e.target.closest('button') || e.target.tagName === 'CANVAS') return;
+    e.preventDefault(); focusGame(); PB.games[PB.game].press();
+  });
+
   // #flyer, #en, #flyer-en … pick a game and/or language straight from the link
   const tokens = location.hash.replace('#', '').split('-');
   let l = tokens.find(x => I18N[x]) || recall('pelican-lang');
