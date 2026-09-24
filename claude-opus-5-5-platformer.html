@@ -61,12 +61,15 @@
   .games .fsbtn{margin-left:auto;font:600 13px/1 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;letter-spacing:.02em;background:#fff;border-radius:999px;padding:8px 14px;box-shadow:2px 2px 0 var(--ink);gap:7px}
   .games .fsbtn svg{width:16px;height:16px;flex:none}
   @media (max-width:520px){.games .fsbtn{margin-left:0}}
-  .fs-exit,.fs-hint{display:none}
+  .fs-exit{display:none}
   html.is-fs,html.is-fs body{overflow:hidden;overscroll-behavior:none}
+  .frame{position:relative}
   .stage.fs{position:fixed;inset:0;z-index:1000;margin:0;border:0;border-radius:0;box-shadow:none;background:#16242F;
-    display:flex;align-items:center;justify-content:center;
-    padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);
     touch-action:manipulation;-webkit-user-select:none;user-select:none}
+  /* The inner frame (not the full-screen element itself, which browsers refuse to transform)
+     centres the game and is what gets turned sideways on upright phones. */
+  .stage.fs .frame{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
   /* keep each game's proportions and fit the screen (letterboxed); vh first, dvh where supported */
   .stage.fs #game-runner{width:min(100%, calc((100vh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) * 960 / 420));
                          width:min(100%, calc((100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) * 960 / 420))}
@@ -78,9 +81,16 @@
     border:2px solid var(--ink);border-radius:999px;padding:8px 12px;cursor:pointer}
   .stage.fs .fs-exit svg{width:14px;height:14px}
   .stage.fs .fs-exit:focus-visible{outline:3px solid var(--pink);outline-offset:2px}
+  /* Phone held upright (or rotation lock on): show the game sideways so it fills the screen in
+     landscape. The stage is laid out as a landscape box (screen height × screen width) and rotated
+     90° clockwise; its padding takes the safe-area inset of the screen edge it ends up against. */
   @media (orientation:portrait){
-    .stage.fs .fs-hint{display:block;position:absolute;left:16px;right:16px;top:calc(env(safe-area-inset-top,0px) + 18px);
-      text-align:center;color:#DCEBE7;font:15px/1.6 var(--display);text-wrap:balance;margin:0}
+    html.touch .stage.fs .frame{inset:auto;top:0;left:0;width:100vh;width:100dvh;height:100vw;
+      transform-origin:top left;transform:rotate(90deg) translateY(-100%);
+      padding:env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px) env(safe-area-inset-top,0px)}
+    html.touch .stage.fs #game-runner{width:min(100%, calc((100vw - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)) * 960 / 420))}
+    html.touch .stage.fs #game-flyer{width:min(100%, calc((100vw - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)) * 960 / 480))}
+    html.touch .stage.fs .fs-exit{right:12px;bottom:12px}
   }
   .help{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.7fr);gap:16px;align-items:stretch}
   @media (max-width:720px){.help{grid-template-columns:1fr}}
@@ -106,7 +116,7 @@
     <div class="intro">
       <p class="tag" id="tag"></p>
       <div class="meta">
-        <span class="ver" data-i18n-title="page.verTitle" title="版本号">v2.1 · 2026-09-24</span>
+        <span class="ver" data-i18n-title="page.verTitle" title="版本号">v2.2 · 2026-09-24</span>
         <div class="langs" role="group" aria-label="语言 / Language">
           <button type="button" data-lang="zh" lang="zh-CN" aria-pressed="true">中文</button>
           <button type="button" data-lang="en" lang="en" aria-pressed="false">English</button>
@@ -122,10 +132,11 @@
   </div>
 
   <div class="stage">
+   <div class="frame">
     <canvas id="game-runner" tabindex="0" data-i18n-aria="runner.aria"></canvas>
     <canvas id="game-flyer" tabindex="0" data-i18n-aria="flyer.aria" hidden></canvas>
-    <p class="fs-hint" data-i18n="page.fsHint">把手机横过来，画面会更大</p>
     <button type="button" class="fs-exit" id="fs-off"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg><span data-i18n="page.fsExit">退出全屏</span></button>
+   </div>
   </div>
 
   <section class="help" data-game="runner">
@@ -183,7 +194,7 @@
 const PB = { lang:'zh', game:'runner', games:{} };
 const I18N = {
   zh: {
-    page:{ title:'鹈鹕单车小游戏', h1:'鹈鹕<em>单车</em>小游戏', verTitle:'版本号', pick:'选择游戏', runnerKind:'跑酷 · 跳平台', flyerKind:'飞行 · 点击扇翅膀', fs:'全屏', fsExit:'退出全屏', fsHint:'横过来玩，画面更大<br>点屏幕任意位置都能操作' },
+    page:{ title:'鹈鹕单车小游戏', h1:'鹈鹕<em>单车</em>小游戏', verTitle:'版本号', pick:'选择游戏', runnerKind:'跑酷 · 跳平台', flyerKind:'飞行 · 点击扇翅膀', fs:'全屏', fsExit:'退出全屏' },
     runner: {
     title:'鹈鹕单车跑酷', h1:'鹈鹕<em>单车</em>跑酷',
     tag:'骑着单车沿码头一路向前：跳上吊板、冲上斜坡、捡金币。撞上螃蟹、木箱或掉进海里，这一趟就结束了。',
@@ -232,7 +243,7 @@ const I18N = {
     },
   },
   en: {
-    page:{ title:'Pelican Bike Games', h1:'Pelican <em>Bike</em> Games', verTitle:'Version', pick:'Choose a game', runnerKind:'platform jumper', flyerKind:'tap to flap', fs:'Full screen', fsExit:'Exit full screen', fsHint:'Turn your phone sideways for a bigger view.<br>Tap anywhere to play.' },
+    page:{ title:'Pelican Bike Games', h1:'Pelican <em>Bike</em> Games', verTitle:'Version', pick:'Choose a game', runnerKind:'platform jumper', flyerKind:'tap to flap', fs:'Full screen', fsExit:'Exit full screen' },
     runner: {
     title:'Pelican Pier Dash', h1:'Pelican <em>Pier</em> Dash',
     tag:'Pedal a pelican down the pier: hop onto planks, ride up ramps, grab coins. Hit a crab or a crate, or fall into the sea, and the run ends.',
@@ -952,7 +963,7 @@ function render(alpha){
 }
 
 function fit(){
-  const r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  const r = { width:cv.clientWidth || cv.getBoundingClientRect().width }, dpr = Math.min(2, window.devicePixelRatio || 1);
   cv.width = Math.max(1, Math.round(r.width * dpr));
   cv.height = Math.max(1, Math.round(r.width * LH / LW * dpr));
   scale = cv.width / LW;
@@ -1556,7 +1567,7 @@ function render(alpha){
 }
 
 function fit(){
-  const r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  const r = { width:cv.clientWidth || cv.getBoundingClientRect().width }, dpr = Math.min(2, window.devicePixelRatio || 1);
   cv.width = Math.max(1, Math.round(r.width * dpr));
   cv.height = Math.max(1, Math.round(r.width * LH / LW * dpr));
   scale = cv.width / LW;
@@ -1644,6 +1655,8 @@ if (document.fonts && document.fonts.load){ document.fonts.load('20px Bungee'); 
      Safari, which only allows it for video — the stage is pinned over the whole window instead.
      Either way the game keeps its proportions, so what you can see ahead never changes. */
   const stage = document.querySelector('.stage'), root = document.documentElement;
+  // touch devices (phones/tablets) get the sideways layout when held upright
+  if ((navigator.maxTouchPoints || 0) > 0 || 'ontouchstart' in window || matchMedia('(pointer: coarse)').matches) root.classList.add('touch');
   const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
   function enterFs(){
     stage.classList.add('fs'); root.classList.add('is-fs');
