@@ -1,6 +1,6 @@
 # Pelican Riding a Bicycle
 
-The same prompt — a pelican riding a bicycle, in pure SVG + JavaScript — given to different models:
+The same task — a pelican riding a bicycle, in pure SVG + JavaScript — given to different models (the prompt came in two language variants, see Notes):
 
 - [GLM-5.3-Flash](https://wang-kaijun.github.io/pelican-riding-bicycle/glm-5-3-flash.html)
 - [GPT-6 Astra (xhigh)](https://wang-kaijun.github.io/pelican-riding-bicycle/gpt-6-astra-xhigh.html)
