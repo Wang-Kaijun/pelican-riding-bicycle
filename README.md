@@ -19,7 +19,7 @@ The same task — a pelican riding a bicycle, in pure SVG + JavaScript — given
 - All other models were given the prompt in Chinese: "在html中使用svg生成一个鹈鹕骑自行车的动图，并包含一个用于调节骑行速度的滑块。"
 - Each entry was generated in the model's official agent / harness client.
 - This is not a rigorous test — it's just for fun, and the results are for reference only.
-- Feel free to cite the results (this repo was a reply to a previous issue); just please note the source.
+- Feel free to cite the results; just please note the source.
 
 ## Related
 
