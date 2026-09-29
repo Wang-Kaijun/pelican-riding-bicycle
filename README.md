@@ -11,3 +11,5 @@ The same prompt — a pelican riding a bicycle, in pure SVG + JavaScript — giv
 - [MiMo v2.6 Pro](https://wang-kaijun.github.io/pelican-riding-bicycle/mimo-v2-6-pro.html)
 - [Gemini 3.8 Flash (High)](https://wang-kaijun.github.io/pelican-riding-bicycle/gemini-3-8-flash-high.html)
 - [Claude Opus 5.5（跑酷版 + 飞车版 + 3D 码头酷跑）](https://wang-kaijun.github.io/pelican-riding-bicycle/claude-opus-5-5-platformer.html)
+- [Claude Sonnet 5.5 (max)](https://wang-kaijun.github.io/pelican-riding-bicycle/claude-sonnet-5-5-max.html)
+- [Claude Sonnet 5.5 (medium)](https://wang-kaijun.github.io/pelican-riding-bicycle/claude-sonnet-5-5-medium.html)
